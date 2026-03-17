@@ -2,68 +2,66 @@
 
 ## 本地开发
 
+在仓库根目录执行：
+
 ```bash
-# 进入项目目录
-cd projects/zhiji-demo
-
-# 安装依赖
 npm install
-
-# 启动开发服务器
 npm run dev
+```
 
-# 访问 http://localhost:3000
+默认访问地址：
+
+```text
+http://localhost:3000
 ```
 
 ## Docker 部署
 
+项目使用 Docker 多阶段构建：
+
+- 构建阶段：`node:20-alpine`
+- 运行阶段：`nginx:alpine`
+
+启动方式：
+
 ```bash
-# 构建并启动
 cd docker
-docker-compose up -d
-
-# 访问 http://localhost:3000
+docker compose up -d --build
 ```
 
-## Vercel 部署
+停止方式：
 
 ```bash
-# 安装 Vercel CLI
-npm i -g vercel
-
-# 部署
-vercel --prod
+cd docker
+docker compose down
 ```
 
-## 项目结构
+访问地址：
 
-```
-src/
-├── components/
-│   ├── layout/      # 布局组件
-│   ├── ui/          # 基础 UI 组件
-│   ├── home/        # 首页
-│   ├── marketplace/ # 技能市场
-│   ├── simulation/  # 仿真工作室
-│   └── dashboard/   # 监控台
-├── data/            # Mock 数据
-├── store/           # Zustand 状态管理
-├── App.jsx          # 主应用
-└── main.jsx         # 入口
+```text
+http://localhost:3000
 ```
 
-## 技术栈
+## Nginx 配置能力
 
-- React 18 + Vite 5
-- Tailwind CSS
-- Framer Motion
-- Zustand
-- React Router v6
-- Recharts
-- Lucide React
+当前 `nginx.conf` 已包含：
 
-## 注意事项
+- SPA 路由回退到 `index.html`
+- JS/CSS/图片等静态资源长缓存
+- gzip 压缩
+- 基础安全响应头
 
-- 所有数据均为模拟，不涉及真实后端
-- 仿真工作室使用 CSS 绘制简化版机器人模型
-- 视频流使用占位符展示
+## 目录说明
+
+```text
+docker/
+├── Dockerfile
+├── docker-compose.yml
+├── nginx.conf
+└── README.md
+```
+
+## 备注
+
+- 这是纯前端 Demo，容器内不依赖后端服务
+- 页面中的实时数据、日志、视频墙效果均为前端模拟

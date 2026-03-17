@@ -1,41 +1,206 @@
-import { useEffect } from 'react'
-import { motion } from 'framer-motion'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import {
-  MousePointer2,
-  Move,
-  RotateCw,
-  Maximize2,
+  Brain,
+  ChevronDown,
+  Cpu,
   Eye,
-  EyeOff,
-  LayoutGrid,
-  Send,
-  Mic,
-  Lightbulb,
-  Armchair,
-  Camera,
-  Video,
-  Download,
-  Play,
-  RotateCcw,
-  Footprints,
   Hand,
+  Maximize2,
+  Mic,
+  Move,
+  MousePointer2,
+  Radar,
+  RotateCcw,
+  RotateCw,
+  Send,
+  ScanLine,
 } from 'lucide-react'
 import { useSimulationStore, useTerminalStore, useRobotStore } from '../../store'
-import { robotParts, aiResponses } from '../../data/mock'
-import { Card, Button, StatusBadge, ProgressBar } from '../ui'
+import { aiResponses } from '../../data/mock'
+import { ProgressBar, StatusBadge } from '../ui'
+import { RobotScene } from './RobotScene'
 
 const tools = [
   { id: 'select', icon: MousePointer2, label: '选择' },
   { id: 'move', icon: Move, label: '移动' },
   { id: 'rotate', icon: RotateCw, label: '旋转' },
-  { id: 'scale', icon: Maximize2, label: '缩放' },
+  { id: 'inspect', icon: ScanLine, label: '巡检' },
+  { id: 'measure', icon: Maximize2, label: '缩放' },
 ]
 
-const views = [
-  { id: 'front', label: '前视' },
-  { id: 'side', label: '侧视' },
+const partConfig = {
+  head: { label: '头部感知', badge: '视觉中枢' },
+  shoulder: { label: '颈部关节', badge: '平衡联动' },
+  arm: { label: '上肢执行', badge: '抓取控制' },
+  hip: { label: '躯干核心', badge: '姿态稳定' },
+  knee: { label: '下肢联动', badge: '步态规划' },
+  foot: { label: '足端支撑', badge: '着地反馈' },
+}
+
+const quickActions = [
+  { label: '姿态校准', action: '姿态校准' },
+  { label: '关节诊断', action: '关节诊断' },
+  { label: '步态优化', action: '步态优化' },
+]
+
+const viewOptions = [
+  { id: 'front', label: '正视' },
+  { id: 'side', label: '左视' },
   { id: 'top', label: '俯视' },
 ]
+
+const focusHotspots = [
+  { id: 'head', label: '头部', position: 'top-[11%] left-1/2 -translate-x-1/2' },
+  { id: 'shoulder', label: '肩部', position: 'top-[24%] left-[26%]' },
+  { id: 'arm', label: '上肢', position: 'top-[44%] right-[18%]' },
+  { id: 'hip', label: '躯干', position: 'top-[45%] left-1/2 -translate-x-1/2' },
+  { id: 'knee', label: '膝部', position: 'bottom-[24%] left-[34%]' },
+  { id: 'foot', label: '足端', position: 'bottom-[11%] right-[32%]' },
+]
+
+const parameterSections = [
+  {
+    title: '头部感知系统',
+    icon: Eye,
+    tone: 'text-cyan-600',
+    rows: [
+      { label: '视觉传感器型号', value: 'Sony IMX586 + RGB-D' },
+      { label: '视场角 / FOV', value: '120° / 90°' },
+      { label: '头部旋转范围', value: 'Pan ±30° | Tilt ±45°' },
+      { label: '观测距离范围', value: '0.3m - 10m' },
+    ],
+    sliders: [
+      { label: 'LiDAR 刷新速率', value: 67 },
+      { label: '人脸识别置信度', value: 84 },
+      { label: '夜视模式', value: 38 },
+    ],
+  },
+  {
+    title: '颈部关节模组',
+    icon: Radar,
+    tone: 'text-sky-600',
+    rows: [
+      { label: '关节驱动', value: '行星齿轮' },
+      { label: '校准目标', value: '0N·m' },
+      { label: '最大功率', value: '0 / 5' },
+    ],
+    stats: [
+      { label: '当前角度', value: '23°' },
+      { label: '中立位', value: '63°' },
+      { label: '极限角', value: '63°' },
+    ],
+  },
+  {
+    title: '躯干主控系统',
+    icon: Cpu,
+    tone: 'text-indigo-600',
+    rows: [
+      { label: '主运算板', value: 'NVIDIA Jetson AGX Orin' },
+      { label: '热值', value: '15W' },
+      { label: 'AI 算力', value: '0 TOPS' },
+      { label: '驱动芯片', value: 'OG8' },
+      { label: '存储颗粒', value: 'OG8' },
+    ],
+    sliders: [
+      { label: 'CPU 使用率', value: 32 },
+      { label: 'GPU 使用率', value: 32 },
+      { label: '内存占用', value: 66 },
+    ],
+    footer: '42.3 / 64 GB',
+  },
+  {
+    title: '左臂操作系统',
+    icon: Hand,
+    tone: 'text-violet-600',
+    rows: [
+      { label: '自由度', value: '请选择' },
+      { label: '最大负载', value: '请选择负载KG' },
+      { label: '臂长校准', value: '请选择长度CM' },
+      { label: '重复定位精度', value: '请选择' },
+      { label: '末端执行器', value: '三指自适应夹爪' },
+      { label: '力学补偿', value: '6轴力/力矩传感器' },
+    ],
+  },
+  {
+    title: '右臂操作系统',
+    icon: Hand,
+    tone: 'text-fuchsia-600',
+    rows: [
+      { label: '自由度', value: '请选择' },
+      { label: '最大负载', value: '请选择负载KG' },
+      { label: '臂长校准', value: '请选择长度CM' },
+      { label: '重复定位精度', value: '请选择' },
+      { label: '末端执行器', value: '三指自适应夹爪' },
+      { label: '力学补偿', value: '6轴力/力矩传感器' },
+    ],
+  },
+  {
+    title: '全局系统参数',
+    icon: Brain,
+    tone: 'text-emerald-600',
+    rows: [
+      { label: '机体高度', value: '0cm' },
+      { label: '整机重量', value: '0kg' },
+      { label: '最大行走速度', value: '0km/h' },
+      { label: '续航时间', value: '0h' },
+    ],
+  },
+]
+
+function SectionCard({ section }) {
+  const Icon = section.icon
+
+  return (
+    <div className="rounded-[1.35rem] border border-slate-200 bg-white/92 p-4 shadow-[0_10px_30px_rgba(148,163,184,0.18)]">
+      <div className="mb-4 flex items-center gap-3">
+        <div className={`flex h-9 w-9 items-center justify-center rounded-2xl bg-slate-100 ${section.tone}`}>
+          <Icon className="h-4 w-4" />
+        </div>
+        <div className="text-sm font-semibold text-slate-800">{section.title}</div>
+      </div>
+
+      <div className="space-y-3">
+        {section.rows?.map((row) => (
+          <div key={row.label}>
+            <div className="mb-1 text-[11px] tracking-[0.12em] text-slate-400">{row.label}</div>
+            <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">
+              <span>{row.value}</span>
+              <ChevronDown className="h-4 w-4 text-slate-400" />
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {section.sliders && (
+        <div className="mt-4 space-y-3">
+          {section.sliders.map((slider) => (
+            <div key={slider.label}>
+              <div className="mb-1 flex items-center justify-between text-xs text-slate-500">
+                <span>{slider.label}</span>
+                <span>{slider.value}%</span>
+              </div>
+              <ProgressBar value={slider.value} color="primary" size="sm" />
+            </div>
+          ))}
+          {section.footer && (
+            <div className="text-right text-xs text-slate-500">{section.footer}</div>
+          )}
+        </div>
+      )}
+
+      {section.stats && (
+        <div className="mt-4 grid grid-cols-3 gap-2">
+          {section.stats.map((stat) => (
+            <div key={stat.label} className="rounded-xl bg-slate-50 px-3 py-2 text-center">
+              <div className="text-[11px] text-slate-400">{stat.label}</div>
+              <div className="mt-1 text-sm font-semibold text-slate-800">{stat.value}</div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
 
 export function SimulationStudio() {
   const {
@@ -46,488 +211,335 @@ export function SimulationStudio() {
     setSelectedTool,
     setSelectedView,
     setSelectedPart,
+    updateParameters,
   } = useSimulationStore()
-
   const { selectedRobot } = useRobotStore()
-  const { messages, inputValue, isThinking, isRecording, addMessage, setInputValue, setIsThinking, setIsRecording } = useTerminalStore()
+  const {
+    messages,
+    inputValue,
+    isThinking,
+    isRecording,
+    addMessage,
+    setInputValue,
+    setIsThinking,
+    setIsRecording,
+  } = useTerminalStore()
 
-  // 模拟参数波动
+  const [zoom, setZoom] = useState(1)
+  const logRef = useRef(null)
+
   useEffect(() => {
-    const interval = setInterval(() => {
-      // 随机波动参数
-    }, 1000)
-    return () => clearInterval(interval)
-  }, [])
+    const interval = window.setInterval(() => {
+      updateParameters('compute', {
+        cpu: Math.max(20, Math.min(92, Number((parameters.compute.cpu + (Math.random() * 12 - 6)).toFixed(0)))),
+        gpu: Math.max(20, Math.min(96, Number((parameters.compute.gpu + (Math.random() * 14 - 7)).toFixed(0)))),
+        temp: Math.max(45, Math.min(76, Number((parameters.compute.temp + (Math.random() * 4 - 2)).toFixed(1)))),
+      })
+      updateParameters('balance', {
+        gyroX: Number((Math.random() * 0.08 - 0.04).toFixed(2)),
+        gyroY: Number((Math.random() * 0.08 - 0.04).toFixed(2)),
+        stability: Number((96 + Math.random() * 3).toFixed(1)),
+      })
+      updateParameters('limb', {
+        leftTorque: Number((40 + Math.random() * 5).toFixed(1)),
+        rightTorque: Number((40 + Math.random() * 5).toFixed(1)),
+      })
+    }, 1500)
+
+    return () => window.clearInterval(interval)
+  }, [parameters.compute.cpu, parameters.compute.gpu, parameters.compute.temp, updateParameters])
+
+  useEffect(() => {
+    if (logRef.current) {
+      logRef.current.scrollTop = logRef.current.scrollHeight
+    }
+  }, [messages, isThinking])
+
+  const currentSelection = useMemo(
+    () => (selectedPart ? partConfig[selectedPart] : null),
+    [selectedPart],
+  )
+
+  const telemetryChips = [
+    { label: '通信', value: '强', tone: 'bg-sky-100 text-sky-700' },
+    { label: '电量', value: `${selectedRobot.battery}%`, tone: 'bg-emerald-100 text-emerald-700' },
+    { label: '操作员', value: '操作员', tone: 'bg-blue-100 text-blue-700' },
+  ]
 
   const handleSendMessage = () => {
     if (!inputValue.trim()) return
-    
+
     addMessage({ type: 'user', content: inputValue })
     setInputValue('')
     setIsThinking(true)
-    
-    setTimeout(() => {
+
+    window.setTimeout(() => {
       const response = aiResponses[Math.floor(Math.random() * aiResponses.length)]
       addMessage({ type: 'ai', content: response })
       setIsThinking(false)
-    }, 1500)
+    }, 1200)
   }
 
-  const handleAction = (action) => {
-    addMessage({ type: 'system', content: `执行动作：${action}` })
+  const handleQuickAction = (action) => {
+    addMessage({ type: 'system', content: `已执行：${action}` })
   }
 
   return (
-    <div className="h-[calc(100vh-4rem)] flex flex-col">
-      {/* 顶部状态栏 */}
-      <div className="h-14 bg-background-secondary/50 border-b border-white/10 flex items-center px-4 space-x-6">
-        {/* 设备身份 */}
-        <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 bg-primary/20 rounded-lg flex items-center justify-center">
-            <Armchair className="w-5 h-5 text-primary" />
-          </div>
-          <div>
-            <div className="text-sm font-medium text-white">{selectedRobot.id}</div>
-            <div className="text-xs text-gray-500">{selectedRobot.model}</div>
-          </div>
-          <div className="px-2 py-1 bg-white/5 rounded text-xs text-gray-400">
-            {selectedRobot.station}
-          </div>
-        </div>
-
-        {/* 监控核心 */}
-        <div className="flex items-center space-x-2 px-4 border-l border-white/10">
-          <StatusBadge status={selectedRobot.status}>
-            机器人状态监控
-          </StatusBadge>
-        </div>
-
-        {/* 系统指标 */}
-        <div className="flex items-center space-x-4 ml-auto">
-          <div className="flex items-center space-x-2">
-            <span className="text-xs text-gray-500">运行状态</span>
-            <span className="text-xs text-status-success">正常</span>
-          </div>
-          <div className="flex items-center space-x-2">
-            <span className="text-xs text-gray-500">通信</span>
-            <span className="text-xs text-primary">Wi-Fi 强</span>
-          </div>
-          <div className="flex items-center space-x-2">
-            <span className="text-xs text-gray-500">电量</span>
-            <div className="w-16">
-              <ProgressBar value={selectedRobot.battery} color={selectedRobot.battery > 20 ? 'success' : 'danger'} size="sm" />
+    <div className="min-h-[calc(100vh-4rem)] bg-[#f5f6fa] text-slate-900">
+      <div className="border-b border-slate-200 bg-white/95 shadow-[0_12px_30px_rgba(148,163,184,0.08)] backdrop-blur-xl">
+        <div className="mx-auto flex max-w-[1900px] flex-wrap items-center justify-between gap-4 px-3 py-3 sm:px-5">
+          <div className="flex items-center gap-3">
+            <div className="h-9 w-9 rounded-xl border-2 border-emerald-400 bg-white" />
+            <div>
+              <div className="text-sm font-semibold text-slate-900">{selectedRobot.id}</div>
+              <div className="text-[11px] text-slate-400">工位 · {selectedRobot.station}</div>
             </div>
-            <span className="text-xs text-white">{selectedRobot.battery}%</span>
           </div>
-          <div className="flex items-center space-x-2">
-            <span className="text-xs text-gray-500">权限</span>
-            <span className="text-xs text-gray-300">操作员</span>
+
+          <div className="hidden rounded-full bg-white px-5 py-3 shadow-[0_8px_24px_rgba(148,163,184,0.18)] md:flex md:items-center md:gap-3">
+            <span className="text-sm text-slate-700">机器人状态监控</span>
+            <StatusBadge status={selectedRobot.status}>正常</StatusBadge>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            {telemetryChips.map((chip) => (
+              <div key={chip.label} className={`rounded-full px-3 py-2 text-xs font-medium ${chip.tone}`}>
+                {chip.label} {chip.value}
+              </div>
+            ))}
           </div>
         </div>
       </div>
 
-      {/* 主工作区 */}
-      <div className="flex-1 flex overflow-hidden">
-        {/* 左侧工具栏 */}
-        <div className="w-14 bg-background-secondary/30 border-r border-white/10 flex flex-col items-center py-4 space-y-2">
+      <div className="mx-auto flex max-w-[1900px] flex-col gap-4 px-3 py-4 sm:px-4 lg:flex-row">
+        <div className="order-2 flex gap-3 overflow-x-auto rounded-[1.6rem] bg-white/80 p-2 shadow-[0_10px_30px_rgba(148,163,184,0.14)] lg:order-1 lg:w-[72px] lg:flex-col lg:overflow-visible">
           {tools.map((tool) => {
             const Icon = tool.icon
             return (
               <button
                 key={tool.id}
+                type="button"
                 onClick={() => setSelectedTool(tool.id)}
-                className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all ${
+                className={`flex min-w-fit items-center gap-2 rounded-2xl px-3 py-3 text-xs transition-all lg:flex-col lg:justify-center ${
                   selectedTool === tool.id
-                    ? 'bg-primary text-white'
-                    : 'text-gray-400 hover:text-white hover:bg-white/10'
+                    ? 'bg-sky-500 text-white shadow-[0_10px_20px_rgba(59,130,246,0.24)]'
+                    : 'bg-slate-50 text-slate-500 hover:bg-slate-100'
                 }`}
-                title={tool.label}
               >
-                <Icon className="w-5 h-5" />
+                <Icon className="h-4 w-4" />
+                <span>{tool.label}</span>
               </button>
             )
           })}
-          
-          <div className="w-8 h-px bg-white/10 my-2" />
-          
-          {views.map((view) => (
-            <button
-              key={view.id}
-              onClick={() => setSelectedView(view.id)}
-              className={`w-10 h-10 rounded-lg flex items-center justify-center text-xs font-medium transition-all ${
-                selectedView === view.id
-                  ? 'bg-accent-purple text-white'
-                  : 'text-gray-400 hover:text-white hover:bg-white/10'
-              }`}
-            >
-              {view.label}
-            </button>
-          ))}
         </div>
 
-        {/* 中心画布 */}
-        <div className="flex-1 relative bg-gradient-to-b from-background to-background-secondary flex items-center justify-center">
-          {/* 机器人可视化区域 */}
-          <div className="relative w-96 h-[500px]">
-            {/* 机器人轮廓 - 使用 CSS 绘制简化版 */}
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="relative w-64 h-96">
-                {/* 头部 */}
-                <motion.div
-                  className={`absolute top-0 left-1/2 -translate-x-1/2 w-16 h-16 rounded-2xl border-2 transition-all cursor-pointer ${
-                    selectedPart === 'head'
-                      ? 'border-primary bg-primary/20 shadow-[0_0_30px_rgba(59,130,246,0.5)]'
-                      : 'border-white/20 bg-white/5 hover:border-primary/50'
+        <div className="order-1 flex min-h-[760px] min-w-0 flex-1 flex-col rounded-[2rem] bg-[radial-gradient(circle_at_top,#ffffff_0%,#f8fafc_58%,#eef2f7_100%)] shadow-[0_18px_60px_rgba(148,163,184,0.18)] lg:order-2">
+          <div className="flex items-center justify-between px-4 py-4 sm:px-6">
+            <div className="flex flex-wrap items-center gap-2">
+              {viewOptions.map((view) => (
+                <button
+                  key={view.id}
+                  type="button"
+                  onClick={() => setSelectedView(view.id)}
+                  className={`rounded-full px-3 py-2 text-xs font-medium ${
+                    selectedView === view.id
+                      ? 'bg-sky-500 text-white'
+                      : 'bg-white text-slate-500 shadow-[0_6px_14px_rgba(148,163,184,0.12)]'
                   }`}
-                  onClick={() => setSelectedPart(selectedPart === 'head' ? null : 'head')}
-                  whileHover={{ scale: 1.05 }}
                 >
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary/50 to-accent-purple/50" />
-                  </div>
-                </motion.div>
+                  {view.label}
+                </button>
+              ))}
+            </div>
 
-                {/* 躯干 */}
-                <div className="absolute top-20 left-1/2 -translate-x-1/2 w-24 h-32 rounded-2xl border-2 border-white/20 bg-white/5">
-                  <div className="absolute inset-2 rounded-xl bg-gradient-to-b from-white/10 to-transparent" />
-                  {/* 胸部显示屏 */}
-                  <div className="absolute top-4 left-1/2 -translate-x-1/2 w-16 h-10 rounded-lg bg-black/50 border border-white/10 flex items-center justify-center">
-                    <span className="text-xs font-mono text-primary">{selectedRobot.battery}%</span>
-                  </div>
-                </div>
+            <div className="hidden rounded-full bg-white px-4 py-2 text-sm text-slate-600 shadow-[0_8px_20px_rgba(148,163,184,0.16)] sm:flex">
+              {currentSelection ? `${currentSelection.label} · ${currentSelection.badge}` : '机器人状态监控'}
+            </div>
+          </div>
 
-                {/* 手臂 */}
-                <motion.div
-                  className={`absolute top-24 left-0 w-12 h-24 rounded-xl border-2 transition-all cursor-pointer ${
-                    selectedPart === 'arm'
-                      ? 'border-primary bg-primary/20'
-                      : 'border-white/20 bg-white/5 hover:border-primary/50'
-                  }`}
-                  onClick={() => setSelectedPart(selectedPart === 'arm' ? null : 'arm')}
+          <div className="relative flex-1 px-3 pb-4 sm:px-5">
+            <div className="absolute left-1/2 top-4 z-10 -translate-x-1/2 rounded-full bg-white px-4 py-3 text-xs text-slate-600 shadow-[0_10px_24px_rgba(148,163,184,0.16)] sm:text-sm">
+              {currentSelection ? (
+                <span>
+                  {currentSelection.label} · <span className="text-emerald-500">{currentSelection.badge}</span>
+                </span>
+              ) : (
+                <span>
+                  机器人状态监控 · <span className="text-emerald-500">正常</span>
+                </span>
+              )}
+            </div>
+
+            <div className="relative flex h-full items-center justify-center overflow-hidden rounded-[1.8rem] bg-[radial-gradient(circle_at_center,#ffffff_0%,#f5f7fb_72%,#edf2f7_100%)]">
+              <div className="pointer-events-none absolute inset-x-[14%] top-[8%] h-[68%] rounded-[45%] border border-sky-100 bg-[radial-gradient(circle_at_50%_32%,rgba(129,230,217,0.18),rgba(255,255,255,0)_58%)]" />
+              <div className="pointer-events-none absolute inset-x-[18%] bottom-[7%] h-24 rounded-full bg-[radial-gradient(circle,rgba(56,189,248,0.12),rgba(255,255,255,0)_72%)] blur-2xl" />
+              <div className="h-full w-full">
+                <RobotScene
+                  selectedPart={selectedPart}
+                  selectedView={selectedView}
+                  zoom={zoom}
                 />
-                <div className="absolute top-24 right-0 w-12 h-24 rounded-xl border-2 border-white/20 bg-white/5" />
+              </div>
 
-                {/* 髋部 */}
-                <motion.div
-                  className={`absolute top-56 left-1/2 -translate-x-1/2 w-20 h-12 rounded-xl border-2 transition-all cursor-pointer ${
-                    selectedPart === 'hip'
-                      ? 'border-primary bg-primary/20'
-                      : 'border-white/20 bg-white/5 hover:border-primary/50'
-                  }`}
-                  onClick={() => setSelectedPart(selectedPart === 'hip' ? null : 'hip')}
-                />
+              <div className="pointer-events-none absolute inset-0 hidden xl:block">
+                {focusHotspots.map((hotspot) => {
+                  const isActive = selectedPart === hotspot.id
+                  const meta = partConfig[hotspot.id]
 
-                {/* 腿部 */}
-                <div className="absolute top-72 left-8 w-10 h-32 rounded-xl border-2 border-white/20 bg-white/5" />
-                <div className="absolute top-72 right-8 w-10 h-32 rounded-xl border-2 border-white/20 bg-white/5" />
+                  return (
+                    <button
+                      key={hotspot.id}
+                      type="button"
+                      onClick={() => setSelectedPart(isActive ? null : hotspot.id)}
+                      className={`pointer-events-auto absolute ${hotspot.position} rounded-full border px-3 py-2 text-xs font-medium transition-all ${
+                        isActive
+                          ? 'border-sky-300 bg-sky-500 text-white shadow-[0_18px_34px_rgba(14,165,233,0.26)]'
+                          : 'border-white/70 bg-white/90 text-slate-600 shadow-[0_12px_24px_rgba(148,163,184,0.18)] hover:border-sky-200 hover:text-sky-600'
+                      }`}
+                    >
+                      <span className="block">{hotspot.label}</span>
+                      <span className={`block text-[10px] ${isActive ? 'text-sky-100' : 'text-slate-400'}`}>
+                        {meta.badge}
+                      </span>
+                    </button>
+                  )
+                })}
+              </div>
 
-                {/* 脚部 */}
-                <motion.div
-                  className={`absolute bottom-0 left-6 w-14 h-8 rounded-lg border-2 transition-all cursor-pointer ${
-                    selectedPart === 'foot'
-                      ? 'border-primary bg-primary/20'
-                      : 'border-white/20 bg-white/5 hover:border-primary/50'
-                  }`}
-                  onClick={() => setSelectedPart(selectedPart === 'foot' ? null : 'foot')}
-                />
-                <div className="absolute bottom-0 right-6 w-14 h-8 rounded-lg border-2 border-white/20 bg-white/5" />
+              <div className="absolute right-4 top-1/2 hidden -translate-y-1/2 flex-col gap-3 rounded-full bg-white/90 p-2 shadow-[0_12px_28px_rgba(148,163,184,0.18)] md:flex">
+                {[Hand, Move, Maximize2, ScanLine].map((Icon, index) => (
+                  <button
+                    key={index}
+                    type="button"
+                    className="flex h-10 w-10 items-center justify-center rounded-full text-slate-500 transition-colors hover:bg-slate-100"
+                  >
+                    <Icon className="h-4 w-4" />
+                  </button>
+                ))}
+              </div>
+
+              <div className="absolute bottom-24 right-4 hidden rounded-full bg-white/90 p-2 shadow-[0_12px_28px_rgba(148,163,184,0.18)] lg:flex lg:flex-col">
+                <button
+                  type="button"
+                  onClick={() => setZoom((value) => Math.max(0.8, Number((value - 0.05).toFixed(2))))}
+                  className="rounded-full px-3 py-2 text-sm text-slate-500 hover:bg-slate-100"
+                >
+                  -
+                </button>
+                <div className="px-3 py-1 text-xs text-sky-600">{Math.round(zoom * 100)}%</div>
+                <button
+                  type="button"
+                  onClick={() => setZoom((value) => Math.min(1.2, Number((value + 0.05).toFixed(2))))}
+                  className="rounded-full px-3 py-2 text-sm text-slate-500 hover:bg-slate-100"
+                >
+                  +
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid gap-3 border-t border-slate-200 bg-white/92 px-3 py-3 sm:grid-cols-[180px_minmax(0,1fr)] sm:px-4">
+            <div className="rounded-[1.2rem] border border-slate-200 bg-slate-50 p-3 text-xs text-slate-500 shadow-[0_10px_24px_rgba(148,163,184,0.08)]">
+              <div className="mb-2 text-sm font-semibold text-slate-800">姿态数据</div>
+              <div className="space-y-1">
+                <div className="flex justify-between"><span>俯仰角</span><span>-5.2°</span></div>
+                <div className="flex justify-between"><span>滚转角</span><span>-1.6°</span></div>
+                <div className="flex justify-between"><span>航向角</span><span>100.9°</span></div>
               </div>
             </div>
 
-            {/* 选中部位提示 */}
-            {selectedPart && (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="absolute top-4 left-1/2 -translate-x-1/2 px-4 py-2 bg-primary/90 rounded-lg text-sm font-medium text-white"
-              >
-                已选择: {robotParts.find(p => p.id === selectedPart)?.name}
-              </motion.div>
-            )}
+            <div className="rounded-[1.2rem] border border-slate-200 bg-white p-3 shadow-[0_10px_24px_rgba(148,163,184,0.08)]">
+              <div className="mb-3 flex flex-wrap gap-2 xl:hidden">
+                {focusHotspots.map((hotspot) => (
+                  <button
+                    key={hotspot.id}
+                    type="button"
+                    onClick={() => setSelectedPart(selectedPart === hotspot.id ? null : hotspot.id)}
+                    className={`rounded-full border px-3 py-2 text-xs ${
+                      selectedPart === hotspot.id
+                        ? 'border-sky-200 bg-sky-50 text-sky-700'
+                        : 'border-slate-200 bg-white text-slate-500'
+                    }`}
+                  >
+                    {partConfig[hotspot.id].label}
+                  </button>
+                ))}
+              </div>
+
+              <div ref={logRef} className="mb-3 max-h-24 space-y-2 overflow-y-auto text-sm">
+                {messages.slice(-3).map((message) => (
+                  <div key={message.id} className="rounded-xl bg-slate-50 px-3 py-2 text-slate-600">
+                    {message.content}
+                  </div>
+                ))}
+                {isThinking && (
+                  <div className="rounded-xl bg-sky-50 px-3 py-2 text-sky-600">Robot Figma 正在生成动作策略...</div>
+                )}
+              </div>
+
+              <div className="flex flex-col gap-3 xl:flex-row xl:items-end">
+                <div className="min-w-0 flex-1">
+                  <textarea
+                    value={inputValue}
+                    onChange={(event) => setInputValue(event.target.value)}
+                    placeholder="请输入机器人指令内容"
+                    className="min-h-[84px] w-full resize-none rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 outline-none transition-colors focus:border-sky-300"
+                  />
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2">
+                  {quickActions.map((item) => (
+                    <button
+                      key={item.label}
+                      type="button"
+                      onClick={() => handleQuickAction(item.action)}
+                      className="rounded-full border border-slate-200 bg-white px-3 py-2 text-xs text-slate-600"
+                    >
+                      {item.label}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setIsRecording(!isRecording)}
+                    className={`flex h-10 w-10 items-center justify-center rounded-full ${
+                      isRecording ? 'bg-red-500 text-white' : 'bg-slate-100 text-slate-500'
+                    }`}
+                  >
+                    <Mic className="h-4 w-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSendMessage}
+                    className="flex h-10 w-10 items-center justify-center rounded-full bg-sky-500 text-white shadow-[0_12px_22px_rgba(59,130,246,0.24)]"
+                  >
+                    <Send className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* 右侧参数面板 */}
-        <div className="w-80 bg-background-secondary/30 border-l border-white/10 overflow-y-auto">
-          <div className="p-4 space-y-4">
-            {/* 头部感知系统 */}
-            <Card className="p-4">
-              <div className="flex items-center space-x-2 mb-3">
-                <Eye className="w-4 h-4 text-primary" />
-                <span className="text-sm font-medium text-white">头部感知系统</span>
-              </div>
-              <div className="space-y-2 text-xs">
-                <div className="flex justify-between">
-                  <span className="text-gray-500">传感器</span>
-                  <span className="text-gray-300">{parameters.head.sensor}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">LiDAR 刷新率</span>
-                  <span className="text-gray-300">{parameters.head.lidarRate}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">感光度</span>
-                  <span className="text-gray-300">ISO {parameters.head.iso}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">数据状态</span>
-                  <StatusBadge status="normal">正常</StatusBadge>
-                </div>
-              </div>
-            </Card>
-
-            {/* 核心计算系统 */}
-            <Card className="p-4">
-              <div className="flex items-center space-x-2 mb-3">
-                <LayoutGrid className="w-4 h-4 text-accent-purple" />
-                <span className="text-sm font-medium text-white">核心计算系统</span>
-              </div>
-              <div className="space-y-3">
-                <div>
-                  <div className="flex justify-between text-xs mb-1">
-                    <span className="text-gray-500">CPU</span>
-                    <span className="text-gray-300">{parameters.compute.cpu}%</span>
-                  </div>
-                  <ProgressBar value={parameters.compute.cpu} color={parameters.compute.cpu > 80 ? 'warning' : 'primary'} size="sm" />
-                </div>
-                <div>
-                  <div className="flex justify-between text-xs mb-1">
-                    <span className="text-gray-500">GPU</span>
-                    <span className="text-gray-300">{parameters.compute.gpu}%</span>
-                  </div>
-                  <ProgressBar value={parameters.compute.gpu} color={parameters.compute.gpu > 80 ? 'warning' : 'primary'} size="sm" />
-                </div>
-                <div>
-                  <div className="flex justify-between text-xs mb-1">
-                    <span className="text-gray-500">温度</span>
-                    <span className="text-gray-300">{parameters.compute.temp}°C</span>
-                  </div>
-                  <ProgressBar value={parameters.compute.temp} max={100} color={parameters.compute.temp > 70 ? 'warning' : 'success'} size="sm" />
-                </div>
-                <div className="flex justify-between text-xs">
-                  <span className="text-gray-500">算力</span>
-                  <span className="text-primary font-mono">{parameters.compute.tops} TOPS</span>
-                </div>
-              </div>
-            </Card>
-
-            {/* 平衡操作系统 */}
-            <Card className="p-4">
-              <div className="flex items-center space-x-2 mb-3">
-                <RotateCw className="w-4 h-4 text-accent-pink" />
-                <span className="text-sm font-medium text-white">平衡操作系统</span>
-              </div>
-              <div className="space-y-2 text-xs">
-                <div className="flex justify-between">
-                  <span className="text-gray-500">陀螺仪 X/Y/Z</span>
-                  <span className="text-gray-300 font-mono">
-                    {parameters.balance.gyroX.toFixed(2)} / {parameters.balance.gyroY.toFixed(2)} / {parameters.balance.gyroZ.toFixed(2)}
-                  </span>
-                </div>
-                <div>
-                  <div className="flex justify-between text-xs mb-1">
-                    <span className="text-gray-500">姿态稳定度</span>
-                    <span className="text-gray-300">{parameters.balance.stability}%</span>
-                  </div>
-                  <ProgressBar value={parameters.balance.stability} color="success" size="sm" />
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">步态逻辑</span>
-                  <StatusBadge status={parameters.balance.gaitEnabled ? 'normal' : 'warning'}>
-                    {parameters.balance.gaitEnabled ? '已启用' : '已禁用'}
-                  </StatusBadge>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">路径规划</span>
-                  <span className="text-status-success">{parameters.balance.pathPlanning}</span>
-                </div>
-              </div>
-            </Card>
-
-            {/* 肢体支撑系统 */}
-            <Card className="p-4">
-              <div className="flex items-center space-x-2 mb-3">
-                <Footprints className="w-4 h-4 text-status-success" />
-                <span className="text-sm font-medium text-white">肢体支撑系统</span>
-              </div>
-              <div className="space-y-2 text-xs">
-                <div className="flex justify-between">
-                  <span className="text-gray-500">左腿电机扭矩</span>
-                  <span className="text-gray-300 font-mono">{parameters.limb.leftTorque} kg</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">右腿电机扭矩</span>
-                  <span className="text-gray-300 font-mono">{parameters.limb.rightTorque} kg</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">足端压力分布</span>
-                  <span className="text-primary">{parameters.limb.pressure}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">关节限位</span>
-                  <StatusBadge status="normal">{parameters.limb.jointLimit}</StatusBadge>
-                </div>
-              </div>
-            </Card>
+        <div className="order-3 w-full rounded-[2rem] bg-[#f5f6fa] lg:w-[360px] xl:w-[380px]">
+          <div className="max-h-[calc(100vh-8rem)] space-y-4 overflow-y-auto pr-1">
+            {parameterSections.map((section) => (
+              <SectionCard key={section.title} section={section} />
+            ))}
           </div>
         </div>
       </div>
 
-      {/* 底部多模态控制终端 */}
-      <div className="h-48 bg-background-secondary/50 border-t border-white/10 flex">
-        {/* 左侧动作宏命令 */}
-        <div className="w-48 border-r border-white/10 p-4">
-          <div className="text-xs text-gray-500 mb-3">动作宏命令</div>
-          <div className="space-y-2">
-            <Button
-              variant="secondary"
-              size="sm"
-              className="w-full justify-start"
-              onClick={() => handleAction('行走')}
-            >
-              <Footprints className="w-4 h-4 mr-2" />
-              行走
-            </Button>
-            <Button
-              variant="secondary"
-              size="sm"
-              className="w-full justify-start"
-              onClick={() => handleAction('举起')}
-            >
-              <Hand className="w-4 h-4 mr-2" />
-              举起
-            </Button>
-            <Button
-              variant="secondary"
-              size="sm"
-              className="w-full justify-start"
-              onClick={() => handleAction('复位')}
-            >
-              <RotateCcw className="w-4 h-4 mr-2" />
-              复位
-            </Button>
-          </div>
-        </div>
-
-        {/* 中间智能交互区 */}
-        <div className="flex-1 flex flex-col">
-          {/* 消息列表 */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-2">
-            {messages.map((msg) => (
-              <div
-                key={msg.id}
-                className={`flex items-start space-x-2 text-sm ${
-                  msg.type === 'user' ? 'justify-end' : ''
-                }`}
-              >
-                {msg.type !== 'user' && (
-                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${
-                    msg.type === 'system' ? 'bg-gray-600' :
-                    msg.type === 'ai' ? 'bg-primary' : 'bg-status-success'
-                  }`}>
-                    {msg.type === 'system' ? 'S' : msg.type === 'ai' ? 'AI' : '✓'}
-                  </div>
-                )}
-                <div className={`max-w-[70%] px-3 py-2 rounded-lg ${
-                  msg.type === 'user'
-                    ? 'bg-primary text-white'
-                    : 'bg-white/10 text-gray-200'
-                }`}>
-                  {msg.content}
-                </div>
-                {msg.type === 'user' && (
-                  <div className="w-6 h-6 rounded-full bg-accent-purple flex items-center justify-center text-xs">
-                    U
-                  </div>
-                )}
-              </div>
-            ))}
-            {isThinking && (
-              <div className="flex items-center space-x-2 text-sm text-gray-500">
-                <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center">
-                  <motion.div
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-                  >
-                    <RotateCw className="w-3 h-3 text-white" />
-                  </motion.div>
-                </div>
-                <span>思考中...</span>
-              </div>
-            )}
-          </div>
-
-          {/* 输入区 */}
-          <div className="h-14 border-t border-white/10 px-4 flex items-center space-x-3">
-            <button className="text-gray-400 hover:text-white transition-colors">
-              <Lightbulb className="w-5 h-5" />
-            </button>
-            <button className="text-gray-400 hover:text-white transition-colors">
-              <Armchair className="w-5 h-5" />
-            </button>
-            <div className="flex-1 relative">
-              <input
-                type="text"
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                placeholder="请输入指令..."
-                className="w-full h-10 bg-white/5 border border-white/10 rounded-lg px-4 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-primary/50"
-              />
-            </div>
-            <button
-              onClick={() => setIsThinking(!isThinking)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                isThinking
-                  ? 'bg-primary text-white'
-                  : 'bg-white/10 text-gray-400 hover:text-white'
-              }`}
-            >
-              思考模式
-            </button>
-            <button
-              onClick={() => setIsRecording(!isRecording)}
-              className={`p-2 rounded-lg transition-colors ${
-                isRecording
-                  ? 'bg-status-danger text-white animate-pulse'
-                  : 'text-gray-400 hover:text-white'
-              }`}
-            >
-              <Mic className="w-5 h-5" />
-            </button>
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={handleSendMessage}
-              disabled={!inputValue.trim()}
-            >
-              <Send className="w-4 h-4" />
-            </Button>
-          </div>
-        </div>
-
-        {/* 右侧多媒体工具 */}
-        <div className="w-48 border-l border-white/10 p-4">
-          <div className="text-xs text-gray-500 mb-3">多媒体工具</div>
-          <div className="grid grid-cols-2 gap-2">
-            <button className="p-3 bg-white/5 rounded-lg hover:bg-white/10 transition-colors flex flex-col items-center space-y-1">
-              <Camera className="w-5 h-5 text-gray-400" />
-              <span className="text-xs text-gray-500">拍照</span>
-            </button>
-            <button className="p-3 bg-white/5 rounded-lg hover:bg-white/10 transition-colors flex flex-col items-center space-y-1">
-              <Video className="w-5 h-5 text-gray-400" />
-              <span className="text-xs text-gray-500">录制</span>
-            </button>
-            <button className="p-3 bg-white/5 rounded-lg hover:bg-white/10 transition-colors flex flex-col items-center space-y-1">
-              <Eye className="w-5 h-5 text-gray-400" />
-              <span className="text-xs text-gray-500">监控</span>
-            </button>
-            <button className="p-3 bg-white/5 rounded-lg hover:bg-white/10 transition-colors flex flex-col items-center space-y-1">
-              <Download className="w-5 h-5 text-gray-400" />
-              <span className="text-xs text-gray-500">导出</span>
-            </button>
-          </div>
-        </div>
+      <div className="fixed bottom-5 right-5 z-20">
+        <button
+          type="button"
+          className="flex h-14 w-14 items-center justify-center rounded-full bg-red-500 text-white shadow-[0_18px_30px_rgba(239,68,68,0.28)]"
+          onClick={() => addMessage({ type: 'system', content: '已触发紧急停止演示' })}
+        >
+          <RotateCcw className="h-5 w-5" />
+        </button>
       </div>
     </div>
   )

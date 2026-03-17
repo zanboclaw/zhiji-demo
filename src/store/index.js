@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { mockLogs } from '../data/mock'
 
 // 机器人状态
 export const useRobotStore = create((set) => ({
@@ -6,24 +7,30 @@ export const useRobotStore = create((set) => ({
     id: 'Spot-0729',
     model: 'Spot Pro',
     station: '#B-12',
-    status: 'normal', // normal, warning, danger
+    status: 'normal',
     battery: 70,
     signal: 'strong',
     role: 'operator',
   },
+  setSelectedRobot: (robot) => set({ selectedRobot: robot }),
   setRobotStatus: (status) => set((state) => ({
-    selectedRobot: { ...state.selectedRobot, status }
+    selectedRobot: { ...state.selectedRobot, status },
   })),
   setBattery: (battery) => set((state) => ({
-    selectedRobot: { ...state.selectedRobot, battery }
+    selectedRobot: { ...state.selectedRobot, battery },
   })),
 }))
 
 // 仿真工作室状态
 export const useSimulationStore = create((set) => ({
-  selectedTool: 'select', // select, move, rotate, scale
-  selectedView: 'front', // front, side, top
-  selectedPart: null, // null, head, shoulder, arm, hip, knee, foot
+  selectedTool: 'select',
+  selectedView: 'front',
+  selectedPart: null,
+  droppedModules: [],
+  codeBlocks: [
+    'from robotfigma import Studio\nfrom robotfigma.skills import vision_obstacle_avoidance\n\nstudio = Studio(robot="Spot-0729")\nmission = studio.define_mission("巡检机器人")\nmission.attach_skill(vision_obstacle_avoidance)\n',
+    'mission.set_policy(\n    safety_threshold=0.85,\n    navigation_mode="slam_dynamic",\n    report_channel="ops://alerts",\n)\n',
+  ],
   parameters: {
     head: {
       sensor: 'SONY IMX RGB-D',
@@ -40,7 +47,7 @@ export const useSimulationStore = create((set) => ({
     balance: {
       gyroX: 0.02,
       gyroY: -0.01,
-      gyroZ: 0.00,
+      gyroZ: 0.0,
       stability: 98.5,
       gaitEnabled: true,
       pathPlanning: 'active',
@@ -58,8 +65,14 @@ export const useSimulationStore = create((set) => ({
   updateParameters: (key, values) => set((state) => ({
     parameters: {
       ...state.parameters,
-      [key]: { ...state.parameters[key], ...values }
-    }
+      [key]: { ...state.parameters[key], ...values },
+    },
+  })),
+  appendCodeBlock: (code) => set((state) => ({
+    codeBlocks: [...state.codeBlocks, code],
+  })),
+  addDroppedModule: (module) => set((state) => ({
+    droppedModules: [...state.droppedModules, module],
   })),
 }))
 
@@ -74,7 +87,14 @@ export const useTerminalStore = create((set) => ({
   isThinking: false,
   isRecording: false,
   addMessage: (message) => set((state) => ({
-    messages: [...state.messages, { ...message, id: Date.now(), time: new Date().toLocaleTimeString('zh-CN') }]
+    messages: [
+      ...state.messages,
+      {
+        ...message,
+        id: Date.now(),
+        time: new Date().toLocaleTimeString('zh-CN'),
+      },
+    ],
   })),
   setInputValue: (value) => set({ inputValue: value }),
   setIsThinking: (value) => set({ isThinking: value }),
@@ -92,10 +112,12 @@ export const useMarketplaceStore = create((set) => ({
   setSelectedSort: (sort) => set({ selectedSort: sort }),
   setSearchQuery: (query) => set({ searchQuery: query }),
   installSkill: (skillId) => set((state) => ({
-    installedSkills: [...state.installedSkills, skillId]
+    installedSkills: state.installedSkills.includes(skillId)
+      ? state.installedSkills
+      : [...state.installedSkills, skillId],
   })),
   uninstallSkill: (skillId) => set((state) => ({
-    installedSkills: state.installedSkills.filter(id => id !== skillId)
+    installedSkills: state.installedSkills.filter((id) => id !== skillId),
   })),
 }))
 
@@ -104,15 +126,18 @@ export const useDashboardStore = create((set) => ({
   selectedRobotId: 'Spot-0729',
   isEStopActive: false,
   isRemoteControl: false,
-  logs: [
-    { time: '10:00:00', level: 'info', message: '系统启动' },
-    { time: '10:00:01', level: 'success', message: '连接建立' },
-    { time: '10:00:02', level: 'info', message: '状态正常' },
-  ],
+  logs: mockLogs,
   setSelectedRobotId: (id) => set({ selectedRobotId: id }),
   setIsEStopActive: (value) => set({ isEStopActive: value }),
   setIsRemoteControl: (value) => set({ isRemoteControl: value }),
   addLog: (log) => set((state) => ({
-    logs: [...state.logs, { ...log, time: new Date().toLocaleTimeString('zh-CN') }].slice(-50)
+    logs: [
+      ...state.logs,
+      { ...log, time: new Date().toLocaleTimeString('zh-CN') },
+    ].slice(-80),
   })),
+  prependCriticalLogs: (entries) => set((state) => ({
+    logs: [...entries, ...state.logs].slice(0, 80),
+  })),
+  clearLogs: () => set({ logs: [] }),
 }))

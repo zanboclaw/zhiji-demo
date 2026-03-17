@@ -100,7 +100,7 @@ export function ProgressBar({ value, max = 100, color = 'primary', size = 'md' }
   )
 }
 
-export function MetricCard({ title, value, unit, trend, status = 'normal' }) {
+export function MetricCard({ title, value, unit, trend }) {
   return (
     <Card className="p-4">
       <div className="text-gray-400 text-sm mb-1">{title}</div>
