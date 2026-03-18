@@ -225,7 +225,7 @@ export function SimulationStudio() {
     setIsRecording,
   } = useTerminalStore()
 
-  const [zoom, setZoom] = useState(1)
+  const [zoom, setZoom] = useState(0.9)
   const logRef = useRef(null)
 
   useEffect(() => {
@@ -376,6 +376,7 @@ export function SimulationStudio() {
               <div className="h-full w-full">
                 <RobotScene
                   selectedPart={selectedPart}
+                  selectedTool={selectedTool}
                   selectedView={selectedView}
                   zoom={zoom}
                 />
@@ -421,7 +422,7 @@ export function SimulationStudio() {
               <div className="absolute bottom-24 right-4 hidden rounded-full bg-white/90 p-2 shadow-[0_12px_28px_rgba(148,163,184,0.18)] lg:flex lg:flex-col">
                 <button
                   type="button"
-                  onClick={() => setZoom((value) => Math.max(0.8, Number((value - 0.05).toFixed(2))))}
+                  onClick={() => setZoom((value) => Math.max(0.72, Number((value - 0.05).toFixed(2))))}
                   className="rounded-full px-3 py-2 text-sm text-slate-500 hover:bg-slate-100"
                 >
                   -
@@ -429,7 +430,7 @@ export function SimulationStudio() {
                 <div className="px-3 py-1 text-xs text-sky-600">{Math.round(zoom * 100)}%</div>
                 <button
                   type="button"
-                  onClick={() => setZoom((value) => Math.min(1.2, Number((value + 0.05).toFixed(2))))}
+                  onClick={() => setZoom((value) => Math.min(1.08, Number((value + 0.05).toFixed(2))))}
                   className="rounded-full px-3 py-2 text-sm text-slate-500 hover:bg-slate-100"
                 >
                   +
