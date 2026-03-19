@@ -5,8 +5,8 @@ import { motion } from 'framer-motion'
 export function Card({ children, className = '', hover = false }) {
   return (
     <div
-      className={`bg-background-card/80 backdrop-blur-md border border-white/10 rounded-xl ${
-        hover ? 'hover:border-primary/50 hover:shadow-[0_0_20px_rgba(59,130,246,0.15)] transition-all duration-300' : ''
+      className={`bg-background-card/82 backdrop-blur-md border border-white/8 rounded-xl ${
+        hover ? 'hover:-translate-y-0.5 hover:border-primary/35 hover:shadow-[0_18px_36px_rgba(249,115,22,0.12)] transition-all duration-300' : ''
       } ${className}`}
     >
       {children}
@@ -22,9 +22,9 @@ export function Button({
   ...props
 }) {
   const variants = {
-    primary: 'bg-primary hover:bg-primary-light text-white',
+    primary: 'bg-[linear-gradient(135deg,#f97316,#fb923c)] hover:brightness-105 text-white shadow-[0_14px_32px_rgba(249,115,22,0.22)]',
     secondary: 'bg-white/10 hover:bg-white/20 text-gray-200',
-    outline: 'border border-white/20 hover:border-primary/50 text-gray-200',
+    outline: 'border border-white/14 hover:border-primary/40 hover:bg-primary/8 text-gray-200',
     ghost: 'hover:bg-white/5 text-gray-400 hover:text-gray-200',
     danger: 'bg-status-danger hover:bg-red-600 text-white',
   }

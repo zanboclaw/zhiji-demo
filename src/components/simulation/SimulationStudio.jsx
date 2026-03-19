@@ -151,21 +151,21 @@ function SectionCard({ section }) {
   const Icon = section.icon
 
   return (
-    <div className="rounded-[1.35rem] border border-slate-200 bg-white/92 p-4 shadow-[0_10px_30px_rgba(148,163,184,0.18)]">
+    <div className="rounded-[1.35rem] border border-white/8 bg-[linear-gradient(180deg,rgba(17,24,33,0.94),rgba(14,18,27,0.92))] p-4 shadow-[0_12px_30px_rgba(15,23,42,0.24)]">
       <div className="mb-4 flex items-center gap-3">
-        <div className={`flex h-9 w-9 items-center justify-center rounded-2xl bg-slate-100 ${section.tone}`}>
+        <div className={`flex h-9 w-9 items-center justify-center rounded-2xl bg-white/5 ${section.tone}`}>
           <Icon className="h-4 w-4" />
         </div>
-        <div className="text-sm font-semibold text-slate-800">{section.title}</div>
+        <div className="text-sm font-semibold text-white">{section.title}</div>
       </div>
 
       <div className="space-y-3">
         {section.rows?.map((row) => (
           <div key={row.label}>
-            <div className="mb-1 text-[11px] tracking-[0.12em] text-slate-400">{row.label}</div>
-            <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">
+            <div className="mb-1 text-[11px] tracking-[0.12em] text-gray-500">{row.label}</div>
+            <div className="flex items-center justify-between rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-gray-200">
               <span>{row.value}</span>
-              <ChevronDown className="h-4 w-4 text-slate-400" />
+              <ChevronDown className="h-4 w-4 text-gray-500" />
             </div>
           </div>
         ))}
@@ -175,7 +175,7 @@ function SectionCard({ section }) {
         <div className="mt-4 space-y-3">
           {section.sliders.map((slider) => (
             <div key={slider.label}>
-              <div className="mb-1 flex items-center justify-between text-xs text-slate-500">
+              <div className="mb-1 flex items-center justify-between text-xs text-gray-500">
                 <span>{slider.label}</span>
                 <span>{slider.value}%</span>
               </div>
@@ -183,7 +183,7 @@ function SectionCard({ section }) {
             </div>
           ))}
           {section.footer && (
-            <div className="text-right text-xs text-slate-500">{section.footer}</div>
+            <div className="text-right text-xs text-gray-500">{section.footer}</div>
           )}
         </div>
       )}
@@ -191,9 +191,9 @@ function SectionCard({ section }) {
       {section.stats && (
         <div className="mt-4 grid grid-cols-3 gap-2">
           {section.stats.map((stat) => (
-            <div key={stat.label} className="rounded-xl bg-slate-50 px-3 py-2 text-center">
-              <div className="text-[11px] text-slate-400">{stat.label}</div>
-              <div className="mt-1 text-sm font-semibold text-slate-800">{stat.value}</div>
+            <div key={stat.label} className="rounded-xl border border-white/8 bg-white/[0.03] px-3 py-2 text-center">
+              <div className="text-[11px] text-gray-500">{stat.label}</div>
+              <div className="mt-1 text-sm font-semibold text-white">{stat.value}</div>
             </div>
           ))}
         </div>
@@ -285,19 +285,19 @@ export function SimulationStudio() {
   }
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] bg-[#f5f6fa] text-slate-900">
-      <div className="border-b border-slate-200 bg-white/95 shadow-[0_12px_30px_rgba(148,163,184,0.08)] backdrop-blur-xl">
+    <div className="min-h-[calc(100vh-4rem)] bg-[linear-gradient(180deg,#070b11_0%,#0b1018_100%)] text-slate-100">
+      <div className="border-b border-white/8 bg-[rgba(10,14,20,0.9)] shadow-[0_12px_30px_rgba(2,6,23,0.32)] backdrop-blur-xl">
         <div className="mx-auto flex max-w-[1900px] flex-wrap items-center justify-between gap-4 px-3 py-3 sm:px-5">
           <div className="flex items-center gap-3">
-            <div className="h-9 w-9 rounded-xl border-2 border-emerald-400 bg-white" />
+            <div className="h-9 w-9 rounded-xl border border-emerald-400/50 bg-emerald-400/8" />
             <div>
-              <div className="text-sm font-semibold text-slate-900">{selectedRobot.id}</div>
-              <div className="text-[11px] text-slate-400">工位 · {selectedRobot.station}</div>
+              <div className="text-sm font-semibold text-white">{selectedRobot.id}</div>
+              <div className="text-[11px] text-gray-500">工位 · {selectedRobot.station}</div>
             </div>
           </div>
 
-          <div className="hidden rounded-full bg-white px-5 py-3 shadow-[0_8px_24px_rgba(148,163,184,0.18)] md:flex md:items-center md:gap-3">
-            <span className="text-sm text-slate-700">机器人状态监控</span>
+          <div className="hidden rounded-full border border-white/8 bg-white/[0.03] px-5 py-3 shadow-[0_8px_24px_rgba(2,6,23,0.24)] md:flex md:items-center md:gap-3">
+            <span className="text-sm text-gray-300">机器人状态监控</span>
             <StatusBadge status={selectedRobot.status}>正常</StatusBadge>
           </div>
 
@@ -312,7 +312,7 @@ export function SimulationStudio() {
       </div>
 
       <div className="mx-auto flex max-w-[1900px] flex-col gap-4 px-3 py-4 sm:px-4 lg:flex-row">
-        <div className="order-2 flex gap-3 overflow-x-auto rounded-[1.6rem] bg-white/80 p-2 shadow-[0_10px_30px_rgba(148,163,184,0.14)] lg:order-1 lg:w-[72px] lg:flex-col lg:overflow-visible">
+        <div className="order-2 flex gap-3 overflow-x-auto rounded-[1.6rem] border border-white/8 bg-white/[0.03] p-2 shadow-[0_10px_30px_rgba(2,6,23,0.24)] lg:order-1 lg:w-[84px] lg:flex-col lg:overflow-visible">
           {tools.map((tool) => {
             const Icon = tool.icon
             return (
@@ -322,8 +322,8 @@ export function SimulationStudio() {
                 onClick={() => setSelectedTool(tool.id)}
                 className={`flex min-w-fit items-center gap-2 rounded-2xl px-3 py-3 text-xs transition-all lg:flex-col lg:justify-center ${
                   selectedTool === tool.id
-                    ? 'bg-sky-500 text-white shadow-[0_10px_20px_rgba(59,130,246,0.24)]'
-                    : 'bg-slate-50 text-slate-500 hover:bg-slate-100'
+                    ? 'bg-primary text-white shadow-[0_12px_22px_rgba(249,115,22,0.24)]'
+                    : 'bg-white/[0.03] text-gray-400 hover:bg-white/[0.06] hover:text-white'
                 }`}
               >
                 <Icon className="h-4 w-4" />
@@ -333,7 +333,7 @@ export function SimulationStudio() {
           })}
         </div>
 
-        <div className="order-1 flex min-h-[760px] min-w-0 flex-1 flex-col rounded-[2rem] bg-[radial-gradient(circle_at_top,#ffffff_0%,#f8fafc_58%,#eef2f7_100%)] shadow-[0_18px_60px_rgba(148,163,184,0.18)] lg:order-2">
+        <div className="order-1 flex min-h-[760px] min-w-0 flex-1 flex-col rounded-[2rem] border border-white/8 bg-[linear-gradient(180deg,rgba(12,17,25,0.96),rgba(10,14,20,0.94))] shadow-[0_18px_60px_rgba(2,6,23,0.32)] lg:order-2">
           <div className="flex items-center justify-between px-4 py-4 sm:px-6">
             <div className="flex flex-wrap items-center gap-2">
               {viewOptions.map((view) => (
@@ -343,8 +343,8 @@ export function SimulationStudio() {
                   onClick={() => setSelectedView(view.id)}
                   className={`rounded-full px-3 py-2 text-xs font-medium ${
                     selectedView === view.id
-                      ? 'bg-sky-500 text-white'
-                      : 'bg-white text-slate-500 shadow-[0_6px_14px_rgba(148,163,184,0.12)]'
+                      ? 'bg-primary text-white'
+                      : 'bg-white/[0.03] text-gray-400 shadow-[0_6px_14px_rgba(2,6,23,0.18)]'
                   }`}
                 >
                   {view.label}
@@ -352,13 +352,13 @@ export function SimulationStudio() {
               ))}
             </div>
 
-            <div className="hidden rounded-full bg-white px-4 py-2 text-sm text-slate-600 shadow-[0_8px_20px_rgba(148,163,184,0.16)] sm:flex">
+            <div className="hidden rounded-full border border-white/8 bg-white/[0.03] px-4 py-2 text-sm text-gray-300 shadow-[0_8px_20px_rgba(2,6,23,0.18)] sm:flex">
               {currentSelection ? `${currentSelection.label} · ${currentSelection.badge}` : '机器人状态监控'}
             </div>
           </div>
 
           <div className="relative flex-1 px-3 pb-4 sm:px-5">
-            <div className="absolute left-1/2 top-4 z-10 -translate-x-1/2 rounded-full bg-white px-4 py-3 text-xs text-slate-600 shadow-[0_10px_24px_rgba(148,163,184,0.16)] sm:text-sm">
+            <div className="absolute left-1/2 top-4 z-10 -translate-x-1/2 rounded-full border border-white/8 bg-[rgba(12,17,25,0.85)] px-4 py-3 text-xs text-gray-300 shadow-[0_10px_24px_rgba(2,6,23,0.24)] sm:text-sm">
               {currentSelection ? (
                 <span>
                   {currentSelection.label} · <span className="text-emerald-500">{currentSelection.badge}</span>
@@ -370,9 +370,14 @@ export function SimulationStudio() {
               )}
             </div>
 
-            <div className="relative flex h-full items-center justify-center overflow-hidden rounded-[1.8rem] bg-[radial-gradient(circle_at_center,#ffffff_0%,#f5f7fb_72%,#edf2f7_100%)]">
-              <div className="pointer-events-none absolute inset-x-[14%] top-[8%] h-[68%] rounded-[45%] border border-sky-100 bg-[radial-gradient(circle_at_50%_32%,rgba(129,230,217,0.18),rgba(255,255,255,0)_58%)]" />
-              <div className="pointer-events-none absolute inset-x-[18%] bottom-[7%] h-24 rounded-full bg-[radial-gradient(circle,rgba(56,189,248,0.12),rgba(255,255,255,0)_72%)] blur-2xl" />
+            <div className="relative flex h-full items-center justify-center overflow-hidden rounded-[1.8rem] border border-white/8 bg-[radial-gradient(circle_at_center,#111722_0%,#0d1420_62%,#09111a_100%)]">
+              <div className="absolute inset-x-6 top-5 z-10 flex flex-wrap gap-2">
+                <div className="rounded-full border border-white/8 bg-white/[0.04] px-3 py-1.5 text-[11px] uppercase tracking-[0.18em] text-gray-400">mode · {selectedTool}</div>
+                <div className="rounded-full border border-white/8 bg-white/[0.04] px-3 py-1.5 text-[11px] uppercase tracking-[0.18em] text-gray-400">fps · 60</div>
+                <div className="rounded-full border border-white/8 bg-white/[0.04] px-3 py-1.5 text-[11px] uppercase tracking-[0.18em] text-emerald-300">link · stable</div>
+              </div>
+              <div className="pointer-events-none absolute inset-x-[14%] top-[8%] h-[68%] rounded-[45%] border border-white/8 bg-[radial-gradient(circle_at_50%_32%,rgba(56,189,248,0.15),rgba(255,255,255,0)_58%)]" />
+              <div className="pointer-events-none absolute inset-x-[18%] bottom-[7%] h-24 rounded-full bg-[radial-gradient(circle,rgba(249,115,22,0.14),rgba(255,255,255,0)_72%)] blur-2xl" />
               <div className="h-full w-full">
                 <RobotScene
                   selectedPart={selectedPart}
@@ -394,12 +399,12 @@ export function SimulationStudio() {
                       onClick={() => setSelectedPart(isActive ? null : hotspot.id)}
                       className={`pointer-events-auto absolute ${hotspot.position} rounded-full border px-3 py-2 text-xs font-medium transition-all ${
                         isActive
-                          ? 'border-sky-300 bg-sky-500 text-white shadow-[0_18px_34px_rgba(14,165,233,0.26)]'
-                          : 'border-white/70 bg-white/90 text-slate-600 shadow-[0_12px_24px_rgba(148,163,184,0.18)] hover:border-sky-200 hover:text-sky-600'
+                          ? 'border-primary/40 bg-primary text-white shadow-[0_18px_34px_rgba(249,115,22,0.26)]'
+                          : 'border-white/12 bg-[rgba(12,17,25,0.86)] text-gray-300 shadow-[0_12px_24px_rgba(2,6,23,0.24)] hover:border-primary/20 hover:text-white'
                       }`}
                     >
                       <span className="block">{hotspot.label}</span>
-                      <span className={`block text-[10px] ${isActive ? 'text-sky-100' : 'text-slate-400'}`}>
+                      <span className={`block text-[10px] ${isActive ? 'text-orange-100' : 'text-gray-500'}`}>
                         {meta.badge}
                       </span>
                     </button>
@@ -407,31 +412,31 @@ export function SimulationStudio() {
                 })}
               </div>
 
-              <div className="absolute right-4 top-1/2 hidden -translate-y-1/2 flex-col gap-3 rounded-full bg-white/90 p-2 shadow-[0_12px_28px_rgba(148,163,184,0.18)] md:flex">
+              <div className="absolute right-4 top-1/2 hidden -translate-y-1/2 flex-col gap-3 rounded-full border border-white/8 bg-[rgba(12,17,25,0.86)] p-2 shadow-[0_12px_28px_rgba(2,6,23,0.24)] md:flex">
                 {[Hand, Move, Maximize2, ScanLine].map((Icon, index) => (
                   <button
                     key={index}
                     type="button"
-                    className="flex h-10 w-10 items-center justify-center rounded-full text-slate-500 transition-colors hover:bg-slate-100"
+                    className="flex h-10 w-10 items-center justify-center rounded-full text-gray-400 transition-colors hover:bg-white/[0.06] hover:text-white"
                   >
                     <Icon className="h-4 w-4" />
                   </button>
                 ))}
               </div>
 
-              <div className="absolute bottom-24 right-4 hidden rounded-full bg-white/90 p-2 shadow-[0_12px_28px_rgba(148,163,184,0.18)] lg:flex lg:flex-col">
+              <div className="absolute bottom-24 right-4 hidden rounded-full border border-white/8 bg-[rgba(12,17,25,0.86)] p-2 shadow-[0_12px_28px_rgba(2,6,23,0.24)] lg:flex lg:flex-col">
                 <button
                   type="button"
                   onClick={() => setZoom((value) => Math.max(0.72, Number((value - 0.05).toFixed(2))))}
-                  className="rounded-full px-3 py-2 text-sm text-slate-500 hover:bg-slate-100"
+                  className="rounded-full px-3 py-2 text-sm text-gray-400 hover:bg-white/[0.06]"
                 >
                   -
                 </button>
-                <div className="px-3 py-1 text-xs text-sky-600">{Math.round(zoom * 100)}%</div>
+                <div className="px-3 py-1 text-xs text-primary">{Math.round(zoom * 100)}%</div>
                 <button
                   type="button"
                   onClick={() => setZoom((value) => Math.min(1.08, Number((value + 0.05).toFixed(2))))}
-                  className="rounded-full px-3 py-2 text-sm text-slate-500 hover:bg-slate-100"
+                  className="rounded-full px-3 py-2 text-sm text-gray-400 hover:bg-white/[0.06]"
                 >
                   +
                 </button>
@@ -439,9 +444,9 @@ export function SimulationStudio() {
             </div>
           </div>
 
-          <div className="grid gap-3 border-t border-slate-200 bg-white/92 px-3 py-3 sm:grid-cols-[180px_minmax(0,1fr)] sm:px-4">
-            <div className="rounded-[1.2rem] border border-slate-200 bg-slate-50 p-3 text-xs text-slate-500 shadow-[0_10px_24px_rgba(148,163,184,0.08)]">
-              <div className="mb-2 text-sm font-semibold text-slate-800">姿态数据</div>
+          <div className="grid gap-3 border-t border-white/8 bg-[rgba(10,14,20,0.92)] px-3 py-3 sm:grid-cols-[180px_minmax(0,1fr)] sm:px-4">
+            <div className="rounded-[1.2rem] border border-white/8 bg-white/[0.03] p-3 text-xs text-gray-400 shadow-[0_10px_24px_rgba(2,6,23,0.18)]">
+              <div className="mb-2 text-sm font-semibold text-white">姿态数据</div>
               <div className="space-y-1">
                 <div className="flex justify-between"><span>俯仰角</span><span>-5.2°</span></div>
                 <div className="flex justify-between"><span>滚转角</span><span>-1.6°</span></div>
@@ -449,7 +454,7 @@ export function SimulationStudio() {
               </div>
             </div>
 
-            <div className="rounded-[1.2rem] border border-slate-200 bg-white p-3 shadow-[0_10px_24px_rgba(148,163,184,0.08)]">
+            <div className="rounded-[1.2rem] border border-white/8 bg-[rgba(12,17,25,0.92)] p-3 shadow-[0_10px_24px_rgba(2,6,23,0.18)]">
               <div className="mb-3 flex flex-wrap gap-2 xl:hidden">
                 {focusHotspots.map((hotspot) => (
                   <button
@@ -458,8 +463,8 @@ export function SimulationStudio() {
                     onClick={() => setSelectedPart(selectedPart === hotspot.id ? null : hotspot.id)}
                     className={`rounded-full border px-3 py-2 text-xs ${
                       selectedPart === hotspot.id
-                        ? 'border-sky-200 bg-sky-50 text-sky-700'
-                        : 'border-slate-200 bg-white text-slate-500'
+                        ? 'border-primary/30 bg-primary/12 text-primary'
+                        : 'border-white/10 bg-white/[0.03] text-gray-400'
                     }`}
                   >
                     {partConfig[hotspot.id].label}
@@ -469,12 +474,12 @@ export function SimulationStudio() {
 
               <div ref={logRef} className="mb-3 max-h-24 space-y-2 overflow-y-auto text-sm">
                 {messages.slice(-3).map((message) => (
-                  <div key={message.id} className="rounded-xl bg-slate-50 px-3 py-2 text-slate-600">
+                  <div key={message.id} className="rounded-xl bg-white/[0.03] px-3 py-2 text-gray-300">
                     {message.content}
                   </div>
                 ))}
                 {isThinking && (
-                  <div className="rounded-xl bg-sky-50 px-3 py-2 text-sky-600">Robot Figma 正在生成动作策略...</div>
+                  <div className="rounded-xl bg-primary/10 px-3 py-2 text-primary">Robot Figma 正在生成动作策略...</div>
                 )}
               </div>
 
@@ -484,7 +489,7 @@ export function SimulationStudio() {
                     value={inputValue}
                     onChange={(event) => setInputValue(event.target.value)}
                     placeholder="请输入机器人指令内容"
-                    className="min-h-[84px] w-full resize-none rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 outline-none transition-colors focus:border-sky-300"
+                    className="min-h-[84px] w-full resize-none rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-gray-200 outline-none transition-colors focus:border-primary/35"
                   />
                 </div>
 
@@ -494,7 +499,7 @@ export function SimulationStudio() {
                       key={item.label}
                       type="button"
                       onClick={() => handleQuickAction(item.action)}
-                      className="rounded-full border border-slate-200 bg-white px-3 py-2 text-xs text-slate-600"
+                      className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-2 text-xs text-gray-400"
                     >
                       {item.label}
                     </button>
@@ -506,7 +511,7 @@ export function SimulationStudio() {
                     type="button"
                     onClick={() => setIsRecording(!isRecording)}
                     className={`flex h-10 w-10 items-center justify-center rounded-full ${
-                      isRecording ? 'bg-red-500 text-white' : 'bg-slate-100 text-slate-500'
+                      isRecording ? 'bg-status-danger text-white' : 'bg-white/[0.06] text-gray-400'
                     }`}
                   >
                     <Mic className="h-4 w-4" />
@@ -514,7 +519,7 @@ export function SimulationStudio() {
                   <button
                     type="button"
                     onClick={handleSendMessage}
-                    className="flex h-10 w-10 items-center justify-center rounded-full bg-sky-500 text-white shadow-[0_12px_22px_rgba(59,130,246,0.24)]"
+                    className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-white shadow-[0_12px_22px_rgba(249,115,22,0.24)]"
                   >
                     <Send className="h-4 w-4" />
                   </button>
@@ -524,7 +529,7 @@ export function SimulationStudio() {
           </div>
         </div>
 
-        <div className="order-3 w-full rounded-[2rem] bg-[#f5f6fa] lg:w-[360px] xl:w-[380px]">
+        <div className="order-3 w-full rounded-[2rem] lg:w-[360px] xl:w-[380px]">
           <div className="max-h-[calc(100vh-8rem)] space-y-4 overflow-y-auto pr-1">
             {parameterSections.map((section) => (
               <SectionCard key={section.title} section={section} />

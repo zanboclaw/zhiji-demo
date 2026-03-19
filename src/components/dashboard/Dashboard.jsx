@@ -2,6 +2,7 @@ import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   AlertCircle,
+  ArrowUpRight,
   Battery,
   Bot,
   Radio,
@@ -49,6 +50,32 @@ function TelemetryFallback() {
   )
 }
 
+function OverviewCard({ title, value, unit, accent = 'text-primary', bars = [] }) {
+  return (
+    <Card className="rounded-[1.75rem] p-5">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <div className="text-[11px] uppercase tracking-[0.22em] text-gray-500">{title}</div>
+          <div className="mt-3 flex items-end gap-2">
+            <div className="text-3xl font-semibold text-white">{value}</div>
+            <div className={`pb-1 text-xs uppercase tracking-[0.18em] ${accent}`}>{unit}</div>
+          </div>
+        </div>
+        <div className="rounded-full border border-white/10 bg-white/[0.03] px-2.5 py-1 text-[11px] text-gray-400">live</div>
+      </div>
+      <div className="mt-5 flex h-10 items-end gap-1.5">
+        {bars.map((bar, index) => (
+          <div
+            key={`${title}-${index}`}
+            className="flex-1 rounded-full bg-[linear-gradient(180deg,rgba(56,189,248,0.9),rgba(249,115,22,0.28))]"
+            style={{ height: `${bar}%` }}
+          />
+        ))}
+      </div>
+    </Card>
+  )
+}
+
 export function Dashboard() {
   const {
     selectedRobotId,
@@ -68,6 +95,7 @@ export function Dashboard() {
 
   const onlineCount = robots.filter((robot) => robot.status === 'online').length
   const warningCount = robots.filter((robot) => robot.status === 'warning').length
+  const offlineCount = robots.filter((robot) => robot.status === 'offline').length
   const selectedRobotMeta = useMemo(
     () => robots.find((robot) => robot.id === selectedRobotId) ?? robots[0],
     [selectedRobotId],
@@ -84,6 +112,11 @@ export function Dashboard() {
       role: 'operator',
     })
   }, [selectedRobotMeta, setSelectedRobot])
+
+  const alertItems = useMemo(
+    () => logs.filter((log) => log.level === 'danger' || log.level === 'warning').slice(-4).reverse(),
+    [logs],
+  )
 
   useEffect(() => {
     if (isEStopActive) {
@@ -162,25 +195,52 @@ export function Dashboard() {
       </AnimatePresence>
 
       <div className="mx-auto max-w-7xl space-y-6">
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          <MetricCard title="在线机器人" value={onlineCount} unit="台" trend={12} />
-          <MetricCard title="任务利用率" value={78} unit="%" trend={5} />
-          <MetricCard title="当前报警" value={warningCount} unit="个" trend={-20} />
-          <Card className="rounded-[1.75rem] p-4">
-            <div className="text-sm text-gray-500">当前选中</div>
-            <div className="mt-2 flex items-center gap-3">
-              <Bot className="h-5 w-5 text-primary" />
-              <div>
-                <div className="text-xl font-semibold text-white">{selectedRobotId}</div>
-                <div className="text-xs text-gray-500">{selectedRobotMeta.site}</div>
-              </div>
+        <div className="rounded-[2rem] border border-white/10 bg-background-secondary/55 p-5 shadow-[0_18px_50px_rgba(2,6,23,0.42)]">
+          <div className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+              <div className="text-sm uppercase tracking-[0.28em] text-primary/70">Operations Center</div>
+              <h1 className="mt-3 text-3xl font-semibold text-white lg:text-4xl">Fleet OS 监控台</h1>
+              <p className="mt-3 max-w-2xl text-sm leading-7 text-gray-400">
+                面向实时运行中的机器人系统，把状态、图表、视频和告警收敛到一个更稳定的运行中枢。
+              </p>
             </div>
-          </Card>
+            <div className="flex flex-wrap gap-2 text-xs text-gray-400">
+              <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5">主链路在线</span>
+              <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5">视频墙运行中</span>
+              <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5">遥测流已同步</span>
+            </div>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <OverviewCard title="在线设备数" value={onlineCount} unit="fleet" bars={[36, 42, 48, 44, 50, 58, 62]} />
+            <OverviewCard title="当前任务数" value={78} unit="jobs" bars={[22, 26, 34, 40, 48, 54, 60]} />
+            <OverviewCard title="告警数" value={warningCount} unit="alert" accent="text-status-warning" bars={[52, 48, 42, 36, 30, 24, 18]} />
+            <Card className="rounded-[1.75rem] p-5">
+              <div className="text-[11px] uppercase tracking-[0.22em] text-gray-500">当前选中</div>
+              <div className="mt-4 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/12 text-primary">
+                    <Bot className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <div className="text-xl font-semibold text-white">{selectedRobotId}</div>
+                    <div className="text-xs text-gray-500">{selectedRobotMeta.site}</div>
+                  </div>
+                </div>
+                <div className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-gray-400">
+                  {offlineCount} offline
+                </div>
+              </div>
+            </Card>
+          </div>
         </div>
 
-        <div className="grid gap-6 xl:grid-cols-[280px_minmax(0,1fr)]">
+        <div className="grid gap-6 xl:grid-cols-[320px_minmax(0,1fr)]">
           <Card className="rounded-[2rem] p-5">
-            <div className="mb-4 text-sm font-medium text-white">机队列表</div>
+            <div className="mb-4 flex items-center justify-between">
+              <div className="text-sm font-medium text-white">机队列表</div>
+              <div className="text-xs text-gray-500">状态卡视图</div>
+            </div>
             <div className="space-y-3">
               {robots.map((robot) => {
                 const isActive = robot.id === selectedRobotId
@@ -198,7 +258,7 @@ export function Dashboard() {
                     <div className="flex items-center justify-between">
                       <div>
                         <div className="text-sm font-medium text-white">{robot.name}</div>
-                        <div className="mt-1 text-xs text-gray-500">{robot.model}</div>
+                        <div className="mt-1 text-xs text-gray-500">{robot.model} · {robot.site}</div>
                       </div>
                       <span
                         className={`h-2.5 w-2.5 rounded-full ${
@@ -221,6 +281,13 @@ export function Dashboard() {
                         size="sm"
                       />
                     </div>
+                    <div className="mt-3 flex items-center justify-between text-xs text-gray-500">
+                      <span>最近更新 · 刚刚</span>
+                      <span className="inline-flex items-center gap-1 text-gray-400">
+                        查看
+                        <ArrowUpRight className="h-3.5 w-3.5" />
+                      </span>
+                    </div>
                   </button>
                 )
               })}
@@ -230,42 +297,79 @@ export function Dashboard() {
           <div className="grid gap-6">
             <VideoWall isEStopActive={isEStopActive} />
 
-            <div className="grid gap-6 xl:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)]">
+            <div className="grid gap-6 xl:grid-cols-[minmax(0,1.15fr)_minmax(340px,0.85fr)]">
               <Suspense fallback={<TelemetryFallback />}>
                 <TelemetryPanel temperatureSeries={temperatureSeries} imuSeries={imuSeries} />
               </Suspense>
 
-              <Card className="rounded-[2rem] p-5">
-                <div className="mb-4 flex items-center justify-between">
-                  <h3 className="text-lg font-semibold text-white">实时日志</h3>
-                  <StatusBadge status={isEStopActive ? 'danger' : 'info'}>
-                    {isEStopActive ? 'Critical' : 'Streaming'}
-                  </StatusBadge>
-                </div>
-                <div ref={logRef} className="h-72 overflow-y-auto rounded-[1.5rem] border border-white/10 bg-black/25 p-4 sm:h-[22.5rem]">
-                  <div className="space-y-2 text-xs font-mono">
-                    {logs.map((log, index) => (
-                      <div key={`${log.time}-${index}`} className="flex gap-2">
-                        <span className="text-gray-500">{log.time}</span>
-                        <span
-                          className={`${
-                            log.level === 'success'
-                              ? 'text-status-success'
-                              : log.level === 'warning'
-                                ? 'text-status-warning'
-                                : log.level === 'danger'
-                                  ? 'text-status-danger'
-                                  : 'text-primary'
-                          }`}
-                        >
-                          [{log.level.toUpperCase()}]
-                        </span>
-                        <span className="text-gray-300">{log.message}</span>
-                      </div>
-                    ))}
+              <div className="grid gap-6">
+                <Card className="rounded-[2rem] p-5">
+                  <div className="mb-4 flex items-center justify-between">
+                    <h3 className="text-lg font-semibold text-white">告警与事件</h3>
+                    <div className="text-xs text-gray-500">按严重级别排序</div>
                   </div>
-                </div>
-              </Card>
+                  <div className="space-y-3">
+                    {alertItems.length > 0 ? alertItems.map((item, index) => (
+                      <div
+                        key={`${item.time}-${index}`}
+                        className={`rounded-[1.3rem] border px-4 py-3 ${
+                          item.level === 'danger'
+                            ? 'border-status-danger/30 bg-status-danger/8'
+                            : 'border-status-warning/30 bg-status-warning/8'
+                        }`}
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div>
+                            <div className={`text-xs uppercase tracking-[0.18em] ${
+                              item.level === 'danger' ? 'text-status-danger' : 'text-status-warning'
+                            }`}>
+                              {item.level === 'danger' ? 'critical' : 'warning'}
+                            </div>
+                            <div className="mt-2 text-sm text-white">{item.message}</div>
+                          </div>
+                          <div className="text-xs text-gray-500">{item.time}</div>
+                        </div>
+                      </div>
+                    )) : (
+                      <div className="rounded-[1.3rem] border border-white/10 bg-white/5 px-4 py-4 text-sm text-gray-400">
+                        当前没有高优先级告警，系统运行稳定。
+                      </div>
+                    )}
+                  </div>
+                </Card>
+
+                <Card className="rounded-[2rem] p-5">
+                  <div className="mb-4 flex items-center justify-between">
+                    <h3 className="text-lg font-semibold text-white">实时日志</h3>
+                    <StatusBadge status={isEStopActive ? 'danger' : 'info'}>
+                      {isEStopActive ? 'Critical' : 'Streaming'}
+                    </StatusBadge>
+                  </div>
+                  <div ref={logRef} className="h-72 overflow-y-auto rounded-[1.5rem] border border-white/10 bg-black/25 p-4 sm:h-[18rem]">
+                    <div className="space-y-2 text-xs font-mono">
+                      {logs.map((log, index) => (
+                        <div key={`${log.time}-${index}`} className="flex gap-2">
+                          <span className="text-gray-500">{log.time}</span>
+                          <span
+                            className={`${
+                              log.level === 'success'
+                                ? 'text-status-success'
+                                : log.level === 'warning'
+                                  ? 'text-status-warning'
+                                  : log.level === 'danger'
+                                    ? 'text-status-danger'
+                                    : 'text-primary'
+                            }`}
+                          >
+                            [{log.level.toUpperCase()}]
+                          </span>
+                          <span className="text-gray-300">{log.message}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </Card>
+              </div>
             </div>
           </div>
         </div>

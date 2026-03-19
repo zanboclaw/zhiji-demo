@@ -19,7 +19,6 @@ import {
   Monitor,
   PhoneCall,
   Search,
-  ShieldCheck,
   Sparkles,
   ZoomIn,
   ZoomOut,
@@ -30,42 +29,43 @@ import { Card, Button } from '../ui'
 const capabilities = [
   {
     icon: Brain,
-    title: 'VLA-Compiler 编排行为',
+    title: '仿真编排',
     description: '把自然语言、视觉意图和动作约束编译为可执行行为树。',
+    points: ['自然语言转任务树', '策略约束自动补全', '结果直接进入仿真'],
   },
   {
     icon: Bot,
-    title: '开放技能生态',
-    description: '用技能市场把导航、抓取、巡检等能力快速部署到不同硬件。',
+    title: '机器人能力调度',
+    description: '把感知、导航、抓取和告警统一编排到一条执行链路。',
+    points: ['多模态感知绑定', '异常分支自动生成', '动作链实时回写'],
   },
   {
     icon: Cloud,
-    title: '数字孪生仿真',
-    description: '先在云端画布里验证，再推送到实体机器人，显著降低试错成本。',
+    title: '技能市场部署',
+    description: '用技能市场把导航、抓取、巡检等能力快速部署到不同硬件。',
+    points: ['版本兼容可见', '部署状态可回放', '环境差异可追踪'],
   },
   {
     icon: Monitor,
-    title: '机队实时控制台',
+    title: '监控与回放',
     description: '以 OS 视角统一监控机器人状态、遥测指标和紧急控制动作。',
-  },
-  {
-    icon: ShieldCheck,
-    title: '物理世界安全阈值',
-    description: '当执行置信度不足时主动降级、暂停并请求人工接管。',
+    points: ['机队状态总览', '任务链路回放', '关键阈值主动告警'],
   },
 ]
 
 const kpiTargets = [
-  { label: '在线机器人', value: 42, suffix: '' },
-  { label: '训练数据', value: 12.8, suffix: 'TB' },
-  { label: '技能数量', value: 523, suffix: '' },
+  { label: '在线设备', value: 42, suffix: '', unit: 'Fleet', trend: [42, 44, 45, 44, 47, 49, 52] },
+  { label: '活跃仿真', value: 18, suffix: '', unit: 'Tasks', trend: [6, 9, 10, 12, 14, 16, 18] },
+  { label: '已部署技能', value: 523, suffix: '', unit: 'Skills', trend: [300, 336, 380, 422, 470, 501, 523] },
+  { label: '告警响应时间', value: 0.64, suffix: 's', unit: 'Avg', trend: [1.3, 1.1, 0.98, 0.92, 0.81, 0.74, 0.64] },
 ]
 
-const productPillars = [
-  { title: 'Core', desc: '多模态行为编译引擎', accent: 'from-primary to-cyan-400' },
-  { title: 'Studio', desc: '协作开发 IDE 与仿真工作室', accent: 'from-accent-purple to-pink-400' },
-  { title: 'Edge', desc: '边缘轻量化推理节点', accent: 'from-emerald-400 to-primary' },
-  { title: 'Protocol', desc: '跨硬件通用行为协议层', accent: 'from-orange-400 to-accent-pink' },
+const workflowStages = [
+  { title: '指令输入', desc: '自然语言输入任务、约束和安全边界。', icon: MessageSquareText },
+  { title: '技能组合', desc: '自动绑定感知、导航、抓取与告警能力。', icon: Bot },
+  { title: '仿真验证', desc: '在数字孪生舞台里先执行、先回放、先纠错。', icon: Cloud },
+  { title: '部署执行', desc: '按机器人类型下发策略和运行参数。', icon: ArrowRight },
+  { title: '实时监控', desc: '在 OS 控制台持续监控状态、告警和回放。', icon: Monitor },
 ]
 
 const pricingPlans = [
@@ -73,24 +73,24 @@ const pricingPlans = [
     name: 'Starter',
     tag: '验证版',
     price: '联系咨询',
-    desc: '适合个人开发者与小团队快速验证 Text2BT、仿真与技能编排能力。',
-    points: ['基础行为编排', '标准仿真工作台', '单团队空间', '社区支持'],
+    desc: '适合个人开发者、创新小组和 PoC 团队，用最低门槛验证 Text2BT、仿真编排与基础部署能力。',
+    points: ['基础行为编排与行为树生成', '标准仿真工作台与验证流程', '单团队空间与基础权限配置', '适合 0 到 1 场景验证与 Demo 打样'],
     accent: 'border-white/10 bg-white/[0.03]',
   },
   {
     name: 'Studio',
     tag: '团队版',
     price: '按席位 / 机器人规模',
-    desc: '面向机器人研发团队，覆盖多成员协作、技能复用与验证发布流程。',
-    points: ['团队协作开发', '多机器人验证', '技能市场管理', '版本与流程控制'],
+    desc: '面向正式研发团队，覆盖多成员协作、技能复用、版本管理与多机器人验证，是从研发走向交付的核心方案。',
+    points: ['团队协作开发与角色分工', '多机器人验证与回放能力', '技能市场管理与版本控制', '适合中型项目交付与持续迭代'],
     accent: 'border-primary/30 bg-primary/10 shadow-[0_22px_44px_rgba(59,130,246,0.16)]',
   },
   {
     name: 'Enterprise',
     tag: '企业版',
     price: '定制报价',
-    desc: '支持私有化部署、行业集成与大规模机队控制，适合企业级采购与落地。',
-    points: ['私有化部署', '企业权限体系', '行业方案定制', '专属交付与支持'],
+    desc: '支持私有化部署、行业集成与大规模机队控制，适合集团级客户、行业方案商和正式采购落地项目。',
+    points: ['私有化部署与企业安全合规', '多组织权限体系与审计能力', '行业方案定制与系统集成', '专属交付、培训与长期支持'],
     accent: 'border-accent-purple/20 bg-accent-purple/10',
   },
 ]
@@ -98,17 +98,20 @@ const pricingPlans = [
 const partnershipTracks = [
   {
     title: '硬件合作',
-    desc: '面向机器人本体、传感器、控制器伙伴，联合适配与共建演示方案。',
+    desc: '面向机器人本体、传感器、控制器与边缘硬件伙伴，联合适配能力接口、演示环境与交付方案。',
+    points: ['联合适配本体、传感器与控制器', '共建演示方案与标准接口', '推动硬件与平台协同销售'],
     icon: Building2,
   },
   {
     title: '渠道合作',
-    desc: '与区域渠道和行业集成商协同拓展园区、仓储、安防和制造客户。',
+    desc: '与区域渠道、系统集成商和行业伙伴协同拓展园区、仓储、安防和制造客户。',
+    points: ['联合拓展行业客户与区域市场', '输出标准化售前材料与 Demo', '支持项目商机协同推进'],
     icon: Handshake,
   },
   {
     title: '方案共建',
-    desc: '围绕行业场景共建具身智能解决方案，输出 Demo、试点与商业化路径。',
+    desc: '围绕重点行业场景共建具身智能解决方案，从 Demo、试点到正式落地形成完整路径。',
+    points: ['共建行业方案与交付方法论', '推进试点验证与场景打磨', '形成可复用商业化路径'],
     icon: Briefcase,
   },
 ]
@@ -549,7 +552,8 @@ export function Home() {
   return (
     <div className="min-h-screen bg-background">
       <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.22),transparent_28%),radial-gradient(circle_at_80%_20%,rgba(236,72,153,0.16),transparent_22%),linear-gradient(180deg,#06080d_0%,#04070c_54%,#050505_100%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(249,115,22,0.14),transparent_30%),radial-gradient(circle_at_80%_18%,rgba(56,189,248,0.12),transparent_26%),linear-gradient(180deg,#060709_0%,#06090f_54%,#050505_100%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:48px_48px]" />
         <div className="absolute left-1/2 top-24 h-[min(70vw,38rem)] w-[min(70vw,38rem)] -translate-x-1/2 rounded-full border border-primary/10 bg-primary/5 blur-3xl" />
 
         <div className="relative mx-auto w-full max-w-[min(96vw,1680px)] px-4 py-14 sm:px-6 sm:py-18 lg:px-8 lg:py-24">
@@ -569,10 +573,10 @@ export function Home() {
                 initial={{ opacity: 0, y: 24 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.05 }}
-                className="max-w-3xl text-4xl font-semibold leading-[1.05] text-white sm:text-5xl lg:text-7xl"
+                className="max-w-3xl text-4xl font-semibold leading-[1.02] text-white sm:text-5xl lg:text-[4.5rem]"
               >
                 把自然语言
-                <span className="block bg-gradient-to-r from-primary via-cyan-300 to-accent-pink bg-clip-text text-transparent">
+                <span className="block bg-gradient-to-r from-primary via-orange-200 to-sky-300 bg-clip-text text-transparent">
                   编译成机器人行为
                 </span>
               </motion.h1>
@@ -581,11 +585,10 @@ export function Home() {
                 initial={{ opacity: 0, y: 24 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.12 }}
-                className="mt-5 max-w-2xl text-base leading-8 text-gray-400 sm:text-lg"
+                className="mt-5 max-w-xl text-base leading-8 text-gray-400 sm:text-lg"
               >
-                知肌纪是面向具身智能时代的 Robot Figma。我们把 VLA 编译、技能部署、
-                数字孪生仿真和机队控制台收敛到一个高保真工作流里，帮助团队把两周的开发
-                缩短到两小时的验证与发布。
+                知肌纪把 VLA 编译、技能部署、数字孪生仿真和机队控制台收敛到一条工作流里，
+                帮助团队用更少的人力和更短的时间完成机器人验证与发布。
               </motion.p>
 
               <motion.div
@@ -611,7 +614,22 @@ export function Home() {
                 </Link>
               </motion.div>
 
-              <div className="mt-10 grid gap-4 sm:mt-12 sm:grid-cols-3">
+              <motion.div
+                initial={{ opacity: 0, y: 24 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.22 }}
+                className="mt-5 flex flex-wrap items-center gap-3 text-xs uppercase tracking-[0.22em] text-gray-500 sm:mt-6"
+              >
+                <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5">
+                  <span className="h-2 w-2 rounded-full bg-status-success" />
+                  Studio / Edge / OS 一体化
+                </span>
+                <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5">
+                  支持安防、仓储、接待、工业四类场景
+                </span>
+              </motion.div>
+
+              <div className="mt-10 grid gap-4 sm:mt-12 xl:grid-cols-4">
                 {kpiTargets.map((item, index) => (
                   <motion.div
                     key={item.label}
@@ -620,11 +638,34 @@ export function Home() {
                     viewport={{ once: true }}
                     transition={{ delay: index * 0.08 }}
                   >
-                    <Card className="rounded-3xl border-white/8 p-5 sm:p-6">
-                      <div className="text-3xl font-semibold text-white">
-                        <AnimatedNumber value={item.value} suffix={item.suffix} />
+                    <Card className="relative h-full rounded-[1.6rem] border-white/8 p-5 sm:p-6">
+                      <div className="grid h-full grid-rows-[3.5rem_3.5rem_2.5rem]">
+                        <div className="h-14 pr-12">
+                          <div className="max-w-none text-[12px] leading-5 tracking-[0.04em] text-gray-500">
+                            {item.label}
+                          </div>
+                        </div>
+
+                        <div className="mt-3 flex h-14 items-end gap-2">
+                          <div className="text-3xl font-semibold text-white">
+                            <AnimatedNumber value={item.value} suffix={item.suffix} />
+                          </div>
+                          <div className="pb-1 text-[13px] uppercase tracking-[0.18em] text-primary/80">{item.unit}</div>
+                        </div>
+
+                        <div className="mt-5 flex h-10 items-end gap-1.5">
+                          {item.trend.map((point, trendIndex) => (
+                            <div
+                              key={`${item.label}-${point}-${trendIndex}`}
+                              className="flex-1 rounded-full bg-[linear-gradient(180deg,rgba(56,189,248,0.85),rgba(249,115,22,0.28))]"
+                              style={{ height: `${Math.max(18, (point / Math.max(...item.trend)) * 100)}%` }}
+                            />
+                          ))}
+                        </div>
                       </div>
-                      <div className="mt-2 text-sm text-gray-400">{item.label}</div>
+                      <div className="absolute right-5 top-5 rounded-full border border-white/10 bg-white/[0.03] px-2.5 py-1 text-[13px] leading-none text-gray-400 sm:right-6 sm:top-6">
+                        live
+                      </div>
                     </Card>
                   </motion.div>
                 ))}
@@ -793,53 +834,17 @@ export function Home() {
         </div>
       </section>
 
-      <section className="border-y border-white/6 bg-background-secondary/30 py-20">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="mb-12 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-            <div>
-              <div className="text-sm uppercase tracking-[0.3em] text-primary/70">Product Matrix</div>
-              <h2 className="mt-3 text-3xl font-semibold text-white lg:text-4xl">
-                产品可视化
-              </h2>
-            </div>
-            <p className="max-w-2xl text-gray-400">
-              Business Plan 里的 Core、Studio、Edge、Protocol 在站点中对应为可理解、可点击、
-              可演示的界面能力，而不是抽象名词。
-            </p>
-          </div>
-
-          <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
-            {productPillars.map((pillar, index) => (
-              <motion.div
-                key={pillar.title}
-                initial={{ opacity: 0, y: 18 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.08 }}
-              >
-                <Card className="h-full rounded-[1.75rem] p-6" hover>
-                  <div className={`mb-5 inline-flex rounded-full bg-gradient-to-r px-4 py-1 text-sm font-medium text-white ${pillar.accent}`}>
-                    {pillar.title}
-                  </div>
-                  <h3 className="text-xl font-semibold text-white">{pillar.desc}</h3>
-                  <p className="mt-3 text-sm leading-6 text-gray-400">
-                    围绕开发者工作流设计页面和反馈，让产品故事、技术壁垒与演示动作保持一致。
-                  </p>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       <section className="py-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mb-12 text-center">
             <div className="text-sm uppercase tracking-[0.3em] text-primary/70">Capabilities</div>
-            <h2 className="mt-3 text-3xl font-semibold text-white lg:text-4xl">一站式具身智能开发平台</h2>
+            <h2 className="mt-3 text-3xl font-semibold text-white lg:text-4xl">四个核心能力模块</h2>
+            <p className="mx-auto mt-4 max-w-2xl text-gray-400">
+              每个模块只承担一个明确价值点，让首页信息层级更清楚，也更接近可路演的产品页面。
+            </p>
           </div>
 
-          <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+          <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
             {capabilities.map((capability, index) => {
               const Icon = capability.icon
               return (
@@ -851,11 +856,19 @@ export function Home() {
                   transition={{ delay: index * 0.08 }}
                 >
                   <Card className="h-full rounded-[1.75rem] p-6" hover>
-                    <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/15 text-primary">
+                    <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl border border-primary/15 bg-primary/10 text-primary">
                       <Icon className="h-6 w-6" />
                     </div>
                     <h3 className="text-xl font-semibold text-white">{capability.title}</h3>
                     <p className="mt-3 text-sm leading-6 text-gray-400">{capability.description}</p>
+                    <div className="mt-5 space-y-2">
+                      {capability.points.map((point) => (
+                        <div key={point} className="flex items-center gap-2 text-sm text-gray-300">
+                          <div className="h-1.5 w-1.5 rounded-full bg-primary" />
+                          <span>{point}</span>
+                        </div>
+                      ))}
+                    </div>
                   </Card>
                 </motion.div>
               )
@@ -1071,99 +1084,185 @@ export function Home() {
         </div>
       </section>
 
+      <section className="border-y border-white/6 bg-background-secondary/30 py-20">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="mb-12 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+              <div className="text-sm uppercase tracking-[0.3em] text-primary/70">Workflow</div>
+              <h2 className="mt-3 text-3xl font-semibold text-white lg:text-4xl">
+                从指令到机队执行的产品闭环
+              </h2>
+            </div>
+            <p className="max-w-2xl text-gray-400">
+              用更偏产品叙事的方式，把输入、组合、验证、部署和监控串成一条可理解的业务链路。
+            </p>
+          </div>
+
+          <div className="grid gap-5 xl:grid-cols-5">
+            {workflowStages.map((stage, index) => {
+              const Icon = stage.icon
+              return (
+                <motion.div
+                  key={stage.title}
+                  initial={{ opacity: 0, y: 18 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: index * 0.08 }}
+                >
+                  <Card className="relative h-full rounded-[1.75rem] p-6" hover>
+                    <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-2xl border border-primary/20 bg-primary/10 text-primary">
+                      <Icon className="h-5 w-5" />
+                    </div>
+                    <div className="text-[11px] uppercase tracking-[0.24em] text-gray-500">Step {index + 1}</div>
+                    <h3 className="mt-3 text-xl font-semibold text-white">{stage.title}</h3>
+                    <p className="mt-3 text-sm leading-6 text-gray-400">
+                      {stage.desc}
+                    </p>
+                    {index < workflowStages.length - 1 && (
+                      <div className="pointer-events-none absolute -right-3 top-10 hidden h-px w-6 bg-gradient-to-r from-primary/70 to-sky-400/0 xl:block" />
+                    )}
+                  </Card>
+                </motion.div>
+              )
+            })}
+          </div>
+        </div>
+      </section>
+
       <section className="border-t border-white/6 bg-background-secondary/20 py-24">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mb-12 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div>
-              <div className="text-sm uppercase tracking-[0.3em] text-primary/70">Pricing & Partnership</div>
-              <h2 className="mt-3 text-3xl font-semibold text-white lg:text-4xl">
-                收费方案与合作方式
-              </h2>
+              <div className="text-sm uppercase tracking-[0.3em] text-primary/70">Pricing</div>
+              <h2 className="mt-3 text-3xl font-semibold text-white lg:text-4xl">收费方案</h2>
             </div>
             <p className="max-w-2xl text-gray-400">
-              面向团队采购、行业合作与企业部署，提供从验证版到私有化落地的商业化路径。
+              提供从验证版到企业级私有化部署的收费方案，适配个人验证、团队研发与企业采购场景。
             </p>
           </div>
 
-          <div className="space-y-6">
-            <Card className="rounded-[2rem] border-primary/20 p-8 lg:p-10">
-              <div className="mb-6">
-                <div className="text-sm uppercase tracking-[0.28em] text-primary/70">Pricing</div>
-                <div className="mt-3 text-2xl font-semibold text-white">收费</div>
-                <p className="mt-3 text-sm leading-7 text-gray-400">
-                  提供从验证版到企业级私有化部署的收费方案，适配个人验证、团队研发与企业采购场景。
-                </p>
-              </div>
-
-              <div className="grid gap-4 lg:grid-cols-3">
-                {pricingPlans.map((plan) => (
-                  <div key={plan.name} className={`rounded-[1.35rem] border p-4 ${plan.accent}`}>
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <div className="text-base font-semibold text-white">{plan.name}</div>
-                        <div className="mt-1 text-xs text-primary/80">{plan.tag}</div>
-                      </div>
-                      <div className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] text-gray-300">
-                        {plan.name === 'Studio' ? '热门' : '方案'}
-                      </div>
+          <Card className="rounded-[2rem] border-primary/20 p-8 lg:p-10">
+            <div className="grid gap-4 lg:grid-cols-3">
+              {pricingPlans.map((plan) => (
+                <div key={plan.name} className={`rounded-[1.35rem] border p-5 ${plan.accent}`}>
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <div className="text-base font-semibold text-white">{plan.name}</div>
+                      <div className="mt-1 text-xs text-primary/80">{plan.tag}</div>
                     </div>
-
-                    <div className="mt-3 text-lg font-semibold text-white">{plan.price}</div>
-                    <p className="mt-2 text-sm leading-6 text-gray-400">{plan.points[0]}</p>
+                    <div className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] text-gray-300">
+                      {plan.name === 'Studio' ? '热门' : '方案'}
+                    </div>
                   </div>
-                ))}
-              </div>
 
-              <div className="mt-6">
-                <Button variant="primary" className="rounded-full px-6">获取报价方案</Button>
-              </div>
-            </Card>
+                  <div className="mt-3 text-lg font-semibold text-white">{plan.price}</div>
+                  <p className="mt-3 text-sm leading-6 text-gray-300">{plan.desc}</p>
 
-            <Card className="rounded-[2rem] border-white/12 p-8 lg:p-10">
-              <div className="mb-6">
-                <div className="text-sm uppercase tracking-[0.28em] text-primary/70">Business Cooperation</div>
-                <div className="mt-3 text-2xl font-semibold text-white">合作方式</div>
-                <p className="mt-3 text-sm leading-7 text-gray-400">
-                  面向硬件伙伴、渠道伙伴与行业方案伙伴，支持联合适配、联合拓展和解决方案共建。
-                </p>
-              </div>
-
-              <div className="grid gap-4 lg:grid-cols-3">
-                {partnershipTracks.map((item) => {
-                  const Icon = item.icon
-
-                  return (
-                    <div
-                      key={item.title}
-                      className="rounded-[1.35rem] border border-white/10 bg-white/[0.03] p-4"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary/12 text-primary">
-                          <Icon className="h-5 w-5" />
-                        </div>
-                        <div className="text-base font-semibold text-white">{item.title}</div>
+                  <div className="mt-4 space-y-2">
+                    {plan.points.slice(0, 3).map((point) => (
+                      <div key={point} className="flex items-start gap-2 text-sm text-gray-300">
+                        <div className="mt-2 h-1.5 w-1.5 rounded-full bg-primary" />
+                        <span>{point}</span>
                       </div>
-                      <div className="mt-3 text-sm leading-6 text-gray-400">{item.desc}</div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-6">
+              <Button variant="outline" className="rounded-full px-6">查看方案详情</Button>
+            </div>
+          </Card>
+        </div>
+      </section>
+
+      <section className="border-t border-white/6 bg-background py-24">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="mb-12 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+              <div className="text-sm uppercase tracking-[0.3em] text-primary/70">Business Cooperation</div>
+              <h2 className="mt-3 text-3xl font-semibold text-white lg:text-4xl">合作方式</h2>
+            </div>
+            <p className="max-w-2xl text-gray-400">
+              面向硬件伙伴、渠道伙伴与行业方案伙伴，支持联合适配、联合拓展和解决方案共建。
+            </p>
+          </div>
+
+          <Card className="rounded-[2rem] border-white/12 p-8 lg:p-10">
+            <div className="grid gap-4 lg:grid-cols-3">
+              {partnershipTracks.map((item) => {
+                const Icon = item.icon
+
+                return (
+                  <div
+                    key={item.title}
+                    className="rounded-[1.35rem] border border-white/10 bg-white/[0.03] p-5"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary/12 text-primary">
+                        <Icon className="h-5 w-5" />
+                      </div>
+                      <div className="text-base font-semibold text-white">{item.title}</div>
                     </div>
-                  )
-                })}
+                    <div className="mt-3 text-sm leading-6 text-gray-300">{item.desc}</div>
+                    <div className="mt-4 space-y-2">
+                      {item.points.map((point) => (
+                        <div key={point} className="flex items-start gap-2 text-sm text-gray-300">
+                          <div className="mt-2 h-1.5 w-1.5 rounded-full bg-primary" />
+                          <span>{point}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+
+            <div className="mt-6">
+              <Button variant="outline" className="rounded-full px-6">查看合作方式</Button>
+            </div>
+          </Card>
+        </div>
+      </section>
+
+      <section className="py-24">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <Card className="relative overflow-hidden rounded-[2rem] border-primary/20 bg-[linear-gradient(135deg,rgba(17,24,33,0.96),rgba(13,17,23,0.88))] p-8 lg:p-12">
+            <div className="absolute -right-16 top-1/2 h-56 w-56 -translate-y-1/2 rounded-full bg-primary/12 blur-3xl" />
+            <div className="absolute left-1/3 top-0 h-px w-48 bg-gradient-to-r from-transparent via-sky-300/70 to-transparent" />
+            <div className="relative">
+              <div className="flex flex-col gap-8 border-b border-white/10 pb-8 lg:flex-row lg:items-center lg:justify-between">
+                <div className="max-w-2xl">
+                  <div className="text-sm uppercase tracking-[0.3em] text-primary/70">Final CTA</div>
+                  <h2 className="mt-3 text-3xl font-semibold text-white lg:text-4xl">
+                    让机器人项目进入可落地的商务流程
+                  </h2>
+                  <p className="mt-4 text-base leading-8 text-gray-400">
+                    从方案评估到部署落地，用更清晰的方式推进下一步。
+                  </p>
+                </div>
+                <div className="flex flex-col gap-3 sm:flex-row">
+                  <Button variant="primary" size="lg" className="rounded-full px-8">
+                    获取部署资料
+                  </Button>
+                  <Button variant="outline" size="lg" className="rounded-full px-8">
+                    查看合作方式
+                  </Button>
+                </div>
               </div>
 
-              <div className="mt-6">
-                <Button variant="outline" className="rounded-full px-6">洽谈合作</Button>
-              </div>
-            </Card>
-
-            <Card className="rounded-[2rem] border-accent-purple/18 p-8 lg:p-10">
-              <div className="text-sm uppercase tracking-[0.28em] text-primary/70">Consulting</div>
-              <div className="mt-3 text-2xl font-semibold text-white">咨询入口</div>
-              <p className="mt-3 text-sm leading-7 text-gray-400">
-                如果你希望了解产品演示、采购方式、私有化部署或生态合作，可以直接通过下面入口联系我们。
-              </p>
-
-              <div className="mt-6 grid gap-6 lg:grid-cols-[1.2fr_0.9fr]">
+              <div className="mt-8 grid gap-6 lg:grid-cols-[1.2fr_0.9fr]">
                 <div>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="text-sm uppercase tracking-[0.28em] text-primary/70">Business Contact</div>
+                  <div className="mt-3 text-2xl font-semibold text-white">咨询范围</div>
+                  <p className="mt-3 text-sm leading-7 text-gray-400">
+                    如果你正在评估采购方案、私有化部署、产品演示或生态合作，可通过以下方式与我们联系。
+                  </p>
+
+                  <div className="mt-6">
+                    <div className="mb-3 text-[11px] uppercase tracking-[0.22em] text-gray-500">咨询方向</div>
+                    <div className="flex flex-wrap gap-2">
                     {consultTopics.map((topic) => (
                       <div
                         key={topic}
@@ -1172,9 +1271,11 @@ export function Home() {
                         {topic}
                       </div>
                     ))}
+                    </div>
                   </div>
 
                   <div className="mt-6 grid gap-3 sm:grid-cols-2">
+                    <div className="sm:col-span-2 text-[11px] uppercase tracking-[0.22em] text-gray-500">联系方式</div>
                     <div className="flex items-center gap-3 rounded-[1.2rem] border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-gray-300">
                       <Mail className="h-4 w-4 text-primary" />
                       <span>business@robotfigma.ai</span>
@@ -1186,19 +1287,29 @@ export function Home() {
                   </div>
                 </div>
 
-                <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.03] p-5">
-                  <div className="text-sm font-medium text-white">快速咨询</div>
-                  <div className="mt-2 text-sm leading-6 text-gray-400">
-                    留下合作方向，我们会在 1 个工作日内安排产品或商务同学对接。
+                <div className="rounded-[1.65rem] border border-primary/18 bg-[linear-gradient(180deg,rgba(249,115,22,0.12),rgba(255,255,255,0.02))] p-6 shadow-[0_20px_40px_rgba(249,115,22,0.08)]">
+                  <div className="text-sm uppercase tracking-[0.22em] text-primary/75">Priority Contact</div>
+                  <div className="mt-3 text-2xl font-semibold text-white">立即发起咨询</div>
+                  <div className="mt-3 text-sm leading-7 text-gray-300">
+                    提交项目方向后，我们将在 1 个工作日内安排商务或产品团队与你对接。
                   </div>
-                  <div className="mt-5 grid gap-3">
-                    <Button variant="primary" className="rounded-full">预约演示</Button>
-                    <Button variant="outline" className="rounded-full">提交咨询</Button>
+
+                  <div className="mt-6 rounded-[1.2rem] border border-white/10 bg-black/20 px-4 py-3">
+                    <div className="text-[11px] uppercase tracking-[0.2em] text-gray-500">适用场景</div>
+                    <div className="mt-2 text-sm text-white">适用于采购评估、部署咨询、合作对接。</div>
+                  </div>
+
+                  <div className="mt-6">
+                    <Button variant="primary" className="w-full rounded-full">立即发起咨询</Button>
+                  </div>
+
+                  <div className="mt-4 text-center text-sm text-gray-400">
+                    或发送邮件至 <span className="text-white">business@robotfigma.ai</span>
                   </div>
                 </div>
               </div>
-            </Card>
-          </div>
+            </div>
+          </Card>
         </div>
       </section>
     </div>
