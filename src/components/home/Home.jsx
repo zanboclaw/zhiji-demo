@@ -4,15 +4,20 @@ import {
   ArrowRight,
   Bot,
   Brain,
+  Briefcase,
+  Building2,
   Cloud,
   CheckCircle2,
   ChevronDown,
   ChevronRight,
   Download,
   GitBranch,
+  Handshake,
   Lock,
+  Mail,
   MessageSquareText,
   Monitor,
+  PhoneCall,
   Search,
   ShieldCheck,
   Sparkles,
@@ -62,6 +67,53 @@ const productPillars = [
   { title: 'Edge', desc: '边缘轻量化推理节点', accent: 'from-emerald-400 to-primary' },
   { title: 'Protocol', desc: '跨硬件通用行为协议层', accent: 'from-orange-400 to-accent-pink' },
 ]
+
+const pricingPlans = [
+  {
+    name: 'Starter',
+    tag: '验证版',
+    price: '联系咨询',
+    desc: '适合个人开发者与小团队快速验证 Text2BT、仿真与技能编排能力。',
+    points: ['基础行为编排', '标准仿真工作台', '单团队空间', '社区支持'],
+    accent: 'border-white/10 bg-white/[0.03]',
+  },
+  {
+    name: 'Studio',
+    tag: '团队版',
+    price: '按席位 / 机器人规模',
+    desc: '面向机器人研发团队，覆盖多成员协作、技能复用与验证发布流程。',
+    points: ['团队协作开发', '多机器人验证', '技能市场管理', '版本与流程控制'],
+    accent: 'border-primary/30 bg-primary/10 shadow-[0_22px_44px_rgba(59,130,246,0.16)]',
+  },
+  {
+    name: 'Enterprise',
+    tag: '企业版',
+    price: '定制报价',
+    desc: '支持私有化部署、行业集成与大规模机队控制，适合企业级采购与落地。',
+    points: ['私有化部署', '企业权限体系', '行业方案定制', '专属交付与支持'],
+    accent: 'border-accent-purple/20 bg-accent-purple/10',
+  },
+]
+
+const partnershipTracks = [
+  {
+    title: '硬件合作',
+    desc: '面向机器人本体、传感器、控制器伙伴，联合适配与共建演示方案。',
+    icon: Building2,
+  },
+  {
+    title: '渠道合作',
+    desc: '与区域渠道和行业集成商协同拓展园区、仓储、安防和制造客户。',
+    icon: Handshake,
+  },
+  {
+    title: '方案共建',
+    desc: '围绕行业场景共建具身智能解决方案，输出 Demo、试点与商业化路径。',
+    icon: Briefcase,
+  },
+]
+
+const consultTopics = ['产品演示', '采购咨询', '私有化部署', '生态合作']
 
 const promptText = '帮我给安防巡逻机器人生成夜间巡检策略，发现异常就拍照并通知值班室'
 const aiMessage = '已为 A1 Guard 生成夜巡方案，包含巡检、异常检测、告警上报与返航待命四段逻辑。你可以继续补充场景约束，我会实时更新行为树。'
@@ -747,7 +799,7 @@ export function Home() {
             <div>
               <div className="text-sm uppercase tracking-[0.3em] text-primary/70">Product Matrix</div>
               <h2 className="mt-3 text-3xl font-semibold text-white lg:text-4xl">
-                把融资叙事里的产品矩阵真正可视化
+                产品可视化
               </h2>
             </div>
             <p className="max-w-2xl text-gray-400">
@@ -1016,6 +1068,137 @@ export function Home() {
               </div>
             </div>
           </Card>
+        </div>
+      </section>
+
+      <section className="border-t border-white/6 bg-background-secondary/20 py-24">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="mb-12 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+              <div className="text-sm uppercase tracking-[0.3em] text-primary/70">Pricing & Partnership</div>
+              <h2 className="mt-3 text-3xl font-semibold text-white lg:text-4xl">
+                收费方案与合作方式
+              </h2>
+            </div>
+            <p className="max-w-2xl text-gray-400">
+              面向团队采购、行业合作与企业部署，提供从验证版到私有化落地的商业化路径。
+            </p>
+          </div>
+
+          <div className="space-y-6">
+            <Card className="rounded-[2rem] border-primary/20 p-8 lg:p-10">
+              <div className="mb-6">
+                <div className="text-sm uppercase tracking-[0.28em] text-primary/70">Pricing</div>
+                <div className="mt-3 text-2xl font-semibold text-white">收费</div>
+                <p className="mt-3 text-sm leading-7 text-gray-400">
+                  提供从验证版到企业级私有化部署的收费方案，适配个人验证、团队研发与企业采购场景。
+                </p>
+              </div>
+
+              <div className="grid gap-4 lg:grid-cols-3">
+                {pricingPlans.map((plan) => (
+                  <div key={plan.name} className={`rounded-[1.35rem] border p-4 ${plan.accent}`}>
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <div className="text-base font-semibold text-white">{plan.name}</div>
+                        <div className="mt-1 text-xs text-primary/80">{plan.tag}</div>
+                      </div>
+                      <div className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] text-gray-300">
+                        {plan.name === 'Studio' ? '热门' : '方案'}
+                      </div>
+                    </div>
+
+                    <div className="mt-3 text-lg font-semibold text-white">{plan.price}</div>
+                    <p className="mt-2 text-sm leading-6 text-gray-400">{plan.points[0]}</p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-6">
+                <Button variant="primary" className="rounded-full px-6">获取报价方案</Button>
+              </div>
+            </Card>
+
+            <Card className="rounded-[2rem] border-white/12 p-8 lg:p-10">
+              <div className="mb-6">
+                <div className="text-sm uppercase tracking-[0.28em] text-primary/70">Business Cooperation</div>
+                <div className="mt-3 text-2xl font-semibold text-white">合作方式</div>
+                <p className="mt-3 text-sm leading-7 text-gray-400">
+                  面向硬件伙伴、渠道伙伴与行业方案伙伴，支持联合适配、联合拓展和解决方案共建。
+                </p>
+              </div>
+
+              <div className="grid gap-4 lg:grid-cols-3">
+                {partnershipTracks.map((item) => {
+                  const Icon = item.icon
+
+                  return (
+                    <div
+                      key={item.title}
+                      className="rounded-[1.35rem] border border-white/10 bg-white/[0.03] p-4"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary/12 text-primary">
+                          <Icon className="h-5 w-5" />
+                        </div>
+                        <div className="text-base font-semibold text-white">{item.title}</div>
+                      </div>
+                      <div className="mt-3 text-sm leading-6 text-gray-400">{item.desc}</div>
+                    </div>
+                  )
+                })}
+              </div>
+
+              <div className="mt-6">
+                <Button variant="outline" className="rounded-full px-6">洽谈合作</Button>
+              </div>
+            </Card>
+
+            <Card className="rounded-[2rem] border-accent-purple/18 p-8 lg:p-10">
+              <div className="text-sm uppercase tracking-[0.28em] text-primary/70">Consulting</div>
+              <div className="mt-3 text-2xl font-semibold text-white">咨询入口</div>
+              <p className="mt-3 text-sm leading-7 text-gray-400">
+                如果你希望了解产品演示、采购方式、私有化部署或生态合作，可以直接通过下面入口联系我们。
+              </p>
+
+              <div className="mt-6 grid gap-6 lg:grid-cols-[1.2fr_0.9fr]">
+                <div>
+                  <div className="flex flex-wrap gap-2">
+                    {consultTopics.map((topic) => (
+                      <div
+                        key={topic}
+                        className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-gray-300"
+                      >
+                        {topic}
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="mt-6 grid gap-3 sm:grid-cols-2">
+                    <div className="flex items-center gap-3 rounded-[1.2rem] border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-gray-300">
+                      <Mail className="h-4 w-4 text-primary" />
+                      <span>business@robotfigma.ai</span>
+                    </div>
+                    <div className="flex items-center gap-3 rounded-[1.2rem] border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-gray-300">
+                      <PhoneCall className="h-4 w-4 text-primary" />
+                      <span>400-800-2048</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.03] p-5">
+                  <div className="text-sm font-medium text-white">快速咨询</div>
+                  <div className="mt-2 text-sm leading-6 text-gray-400">
+                    留下合作方向，我们会在 1 个工作日内安排产品或商务同学对接。
+                  </div>
+                  <div className="mt-5 grid gap-3">
+                    <Button variant="primary" className="rounded-full">预约演示</Button>
+                    <Button variant="outline" className="rounded-full">提交咨询</Button>
+                  </div>
+                </div>
+              </div>
+            </Card>
+          </div>
         </div>
       </section>
     </div>

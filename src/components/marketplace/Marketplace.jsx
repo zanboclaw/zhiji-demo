@@ -82,10 +82,6 @@ export function Marketplace() {
               <h1 className="mt-3 text-3xl font-semibold text-white lg:text-4xl">
                 AI 技能市场
               </h1>
-              <p className="mt-3 max-w-2xl text-gray-400">
-                围绕融资计划书里的技能生态和平台抽佣逻辑，强化技能部署、仿真测试与设备兼容展示，
-                让这个页面更像真正的开发者入口。
-              </p>
             </div>
 
             <div className="grid gap-3 sm:grid-cols-3">
