@@ -1,0 +1,7 @@
+rigged-robot-v2.glb
+Source: Poly Pizza
+Model: "Rigged robot"
+Creator: joney_lol
+Model page: https://poly.pizza/m/BwjA6Thdzd
+Direct asset: https://static.poly.pizza/d6a9c09f-5e0f-46af-9ec0-577e91dda457.glb
+License: CC-BY 3.0

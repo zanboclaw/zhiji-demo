@@ -40,6 +40,7 @@
 ```text
 zhiji-demo/
 ├─ src/
+│  ├─ pages/
 │  ├─ components/
 │  │  ├─ dashboard/
 │  │  ├─ home/

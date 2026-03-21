@@ -84,6 +84,7 @@ export const useTerminalStore = create((set) => ({
     { id: 3, type: 'success', content: '状态监控已启动', time: '10:00:02' },
   ],
   inputValue: '',
+  selectedModel: 'ChatGPT',
   isThinking: false,
   isRecording: false,
   addMessage: (message) => set((state) => ({
@@ -97,6 +98,7 @@ export const useTerminalStore = create((set) => ({
     ],
   })),
   setInputValue: (value) => set({ inputValue: value }),
+  setSelectedModel: (value) => set({ selectedModel: value }),
   setIsThinking: (value) => set({ isThinking: value }),
   setIsRecording: (value) => set({ isRecording: value }),
   clearMessages: () => set({ messages: [] }),

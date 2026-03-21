@@ -3,24 +3,10 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { Bot } from 'lucide-react'
 import { Layout } from './components/layout/Layout'
 
-const Home = lazy(() =>
-  import('./components/home/Home').then((module) => ({ default: module.Home })),
-)
-const Marketplace = lazy(() =>
-  import('./components/marketplace/Marketplace').then((module) => ({
-    default: module.Marketplace,
-  })),
-)
-const SimulationStudio = lazy(() =>
-  import('./components/simulation/SimulationStudio').then((module) => ({
-    default: module.SimulationStudio,
-  })),
-)
-const Dashboard = lazy(() =>
-  import('./components/dashboard/Dashboard').then((module) => ({
-    default: module.Dashboard,
-  })),
-)
+const HomePage = lazy(() => import('./pages/HomePage'))
+const MarketplacePage = lazy(() => import('./pages/MarketplacePage'))
+const SimulationPage = lazy(() => import('./pages/SimulationPage'))
+const DashboardPage = lazy(() => import('./pages/DashboardPage'))
 
 function RouteFallback() {
   return (
@@ -42,10 +28,10 @@ function App() {
       <Layout>
         <Suspense fallback={<RouteFallback />}>
           <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/marketplace" element={<Marketplace />} />
-            <Route path="/simulation" element={<SimulationStudio />} />
-            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/" element={<HomePage />} />
+            <Route path="/marketplace" element={<MarketplacePage />} />
+            <Route path="/simulation" element={<SimulationPage />} />
+            <Route path="/dashboard" element={<DashboardPage />} />
           </Routes>
         </Suspense>
       </Layout>
