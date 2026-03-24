@@ -48,6 +48,17 @@ const PART_FOCUS_MAP = {
   foot: { position: [0.74, 0.22, 0.52], color: '#34d399' },
 }
 
+const PART_NODE_MAP = {
+  head: ['head'],
+  shoulder: ['upper_armL', 'upper_armR', 'neck'],
+  arm: ['forearmL', 'forearmR', 'handL', 'handR'],
+  hip: ['spine002', 'spine003'],
+  knee: ['shinL', 'shinR'],
+  foot: ['footL', 'footR'],
+}
+
+export const ROBOT_HOTSPOTS = PART_FOCUS_MAP
+
 function getModelBounds(root) {
   root.updateMatrixWorld(true)
 
@@ -146,11 +157,11 @@ function StageEffects({ selectedPart, selectedTool }) {
   )
 }
 
-function PartFocusMarker({ selectedPart }) {
+function PartFocusMarker({ focusMap, selectedPart }) {
   const ringRef = useRef(null)
   const beaconRef = useRef(null)
   const pointRef = useRef(null)
-  const focus = selectedPart ? PART_FOCUS_MAP[selectedPart] : null
+  const focus = selectedPart ? focusMap[selectedPart] : null
 
   useFrame((state) => {
     if (!focus) return
@@ -197,12 +208,12 @@ function PartFocusMarker({ selectedPart }) {
   )
 }
 
-function ToolAssist({ selectedPart, selectedTool }) {
+function ToolAssist({ focusMap, selectedPart, selectedTool }) {
   const inspectRef = useRef(null)
   const rotateRef = useRef(null)
   const moveRef = useRef(null)
   const measureRef = useRef(null)
-  const focus = selectedPart ? PART_FOCUS_MAP[selectedPart] ?? PART_FOCUS_MAP.hip : PART_FOCUS_MAP.hip
+  const focus = selectedPart ? focusMap[selectedPart] ?? focusMap.hip : focusMap.hip
   const anchor = focus.position
 
   useFrame((state) => {
@@ -366,35 +377,69 @@ function getCameraConfig(selectedView, selectedPart, selectedTool) {
     return {
       fov: selectedTool === 'inspect' ? 23 : 24,
       position: [
-        3.75 + focus.position[0] * 0.38,
+        0.92 + focus.position[0] * 0.22,
         1.7 + focus.position[1] * 0.28,
-        selectedTool === 'inspect' ? 4.75 : 5.15,
+        selectedTool === 'inspect' ? 4.9 : 5.55,
       ],
-      target: [focus.position[0] * 0.22, focus.position[1], focus.position[2]],
+      target: [focus.position[0] * 0.14, focus.position[1], focus.position[2]],
     }
   }
 
   if (selectedTool === 'inspect') {
     return {
       fov: 24,
-      position: [3.45, 2.65, 5.2],
-      target: [0, 1.55, 0.08],
+      position: [0.88, 2.72, 5.55],
+      target: [0, 1.6, 0.08],
     }
   }
 
   if (selectedTool === 'measure') {
     return {
       fov: 27,
-      position: [4.45, 2.7, 6.65],
+      position: [1.02, 2.8, 6.95],
       target: [0, 1.06, 0],
     }
   }
 
   return {
     fov: 26,
-    position: [4.05, 2.55, 6.15],
-    target: [0, 1.15, 0],
+    position: [0.82, 2.58, 6.42],
+    target: [0, 1.18, 0],
   }
+}
+
+function resolveFocusMap(modelRoot) {
+  const resolvedMap = Object.fromEntries(
+    Object.entries(PART_FOCUS_MAP).map(([key, value]) => [key, { ...value }]),
+  )
+  const worldPosition = new Vector3()
+  const accumulated = new Vector3()
+
+  modelRoot.updateMatrixWorld(true)
+
+  Object.entries(PART_NODE_MAP).forEach(([key, nodeNames]) => {
+    const targetNodes = nodeNames
+      .map((name) => modelRoot.getObjectByName(name))
+      .filter(Boolean)
+
+    if (targetNodes.length === 0) {
+      return
+    }
+
+    accumulated.set(0, 0, 0)
+    targetNodes.forEach((targetNode) => {
+      targetNode.getWorldPosition(worldPosition)
+      accumulated.add(worldPosition)
+    })
+    accumulated.divideScalar(targetNodes.length)
+
+    resolvedMap[key] = {
+      ...resolvedMap[key],
+      position: [accumulated.x, accumulated.y, accumulated.z],
+    }
+  })
+
+  return resolvedMap
 }
 
 function ModelRobot({ zoom, selectedTool, selectedPart, selectedView }) {
@@ -408,12 +453,12 @@ function ModelRobot({ zoom, selectedTool, selectedPart, selectedView }) {
       return { rotation: [0, Math.PI / 7, 0], position: [0, -1.16, 0] }
     }
 
-    return { rotation: [0, Math.PI / 7.5, 0], position: [0, -1.16, 0] }
+    return { rotation: [0, Math.PI / 18, 0], position: [0, -1.18, 0] }
   }, [selectedView])
 
   const rigRef = useRef(null)
   const shouldAutoRotate = selectedView === 'front' && selectedTool !== 'inspect' && !selectedPart
-  const model = useMemo(() => {
+  const { focusMap, model } = useMemo(() => {
     const cloned = SkeletonUtils.clone(scene)
     const modelBounds = getModelBounds(cloned)
     const scale = modelBounds?.size.y > 0 ? 4.85 / modelBounds.size.y : 0.39
@@ -450,7 +495,10 @@ function ModelRobot({ zoom, selectedTool, selectedPart, selectedView }) {
       }
     })
 
-    return cloned
+    return {
+      focusMap: resolveFocusMap(cloned),
+      model: cloned,
+    }
   }, [scene])
 
   useEffect(() => {
@@ -480,6 +528,8 @@ function ModelRobot({ zoom, selectedTool, selectedPart, selectedView }) {
 
   return (
     <group ref={rigRef} scale={zoom * 0.78}>
+      <PartFocusMarker focusMap={focusMap} selectedPart={selectedPart} />
+      <ToolAssist focusMap={focusMap} selectedPart={selectedPart} selectedTool={selectedTool} />
       <primitive object={model} />
     </group>
   )
@@ -512,9 +562,6 @@ export function RobotScene({ selectedPart, selectedTool, selectedView, zoom }) {
           <pointLight position={[-2.8, 2.2, 2.8]} intensity={0.42} color="#fb923c" />
 
           <StageEffects selectedPart={selectedPart} selectedTool={selectedTool} />
-          <PartFocusMarker selectedPart={selectedPart} />
-          <ToolAssist selectedPart={selectedPart} selectedTool={selectedTool} />
-
           <ModelRobot
             selectedPart={selectedPart}
             selectedTool={selectedTool}

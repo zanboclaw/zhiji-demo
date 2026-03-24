@@ -1,5 +1,5 @@
-import { lazy, Suspense, useMemo } from 'react'
-import { focusHotspots, partConfig, partInsights, tools, viewOptions } from './simulationContent'
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
+import { partConfig, partInsights, tools, viewOptions } from './simulationContent'
 
 const RobotScene = lazy(() =>
   import('./RobotScene').then((module) => ({ default: module.RobotScene })),
@@ -15,7 +15,7 @@ const statusDotMap = {
 const toolGuideMap = {
   select: {
     label: '选择模式',
-    shortHint: '点击模型标注聚焦部件',
+    shortHint: '点击顶部部件标签聚焦目标',
     description: '用于快速定位部件并联动右侧参数面板。',
   },
   move: {
@@ -40,6 +40,37 @@ const toolGuideMap = {
   },
 }
 
+const hotspotLabelMap = {
+  head: '头部',
+  shoulder: '肩部',
+  arm: '上肢',
+  hip: '躯干',
+  knee: '膝部',
+  foot: '足端',
+}
+
+const hotspotStackOrder = ['head', 'shoulder', 'arm', 'hip', 'knee', 'foot']
+const zoomMin = 0.68
+const zoomMax = 1.04
+
+const viewShortcutMap = {
+  '1': 'front',
+  '2': 'side',
+  '3': 'top',
+}
+
+const toolShortcutMap = {
+  q: 'select',
+  w: 'move',
+  e: 'rotate',
+  r: 'inspect',
+  t: 'measure',
+}
+
+function clampZoom(value) {
+  return Math.max(zoomMin, Math.min(zoomMax, Number(value.toFixed(2))))
+}
+
 function SceneCanvasFallback() {
   return (
     <div className="flex h-full min-h-[680px] w-full items-center justify-center bg-[linear-gradient(180deg,#eff3f8_0%,#e7edf5_100%)]">
@@ -61,6 +92,7 @@ export function SimulationViewport({
   setSelectedView,
   setZoom,
 }) {
+  const [interactionHint, setInteractionHint] = useState('提示：点击顶部标签、使用右侧工具或按 1/2/3 切换视角')
   const selectedToolMeta = useMemo(
     () => tools.find((tool) => tool.id === selectedTool) ?? tools[0],
     [selectedTool],
@@ -77,6 +109,85 @@ export function SimulationViewport({
     () => (selectedPart ? partInsights[selectedPart] : null),
     [selectedPart],
   )
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setInteractionHint('提示：点击顶部标签、使用右侧工具或按 1/2/3 切换视角')
+    }, 2200)
+
+    return () => window.clearTimeout(timer)
+  }, [interactionHint])
+
+  const updateHint = (message) => {
+    setInteractionHint(message)
+  }
+
+  const handleSelectPart = (nextPart) => {
+    setSelectedPart(nextPart)
+    updateHint(nextPart ? `已聚焦 ${partConfig[nextPart]?.label ?? '目标部件'}` : '已切换到整机总览')
+  }
+
+  const handleSelectView = (viewId) => {
+    setSelectedView(viewId)
+    updateHint(`已切换到${viewOptions.find((view) => view.id === viewId)?.label ?? '目标视角'}`)
+  }
+
+  const handleSelectTool = (toolId) => {
+    setSelectedTool(toolId)
+    updateHint(`已切换到${tools.find((tool) => tool.id === toolId)?.label ?? '工具'}模式`)
+  }
+
+  const handleZoomChange = (nextZoom) => {
+    const clampedZoom = clampZoom(nextZoom)
+    setZoom(clampedZoom)
+    updateHint(`主视图缩放 ${Math.round(clampedZoom * 100)}%`)
+  }
+
+  const handleResetViewport = () => {
+    setSelectedPart(null)
+    setSelectedView('front')
+    setSelectedTool('select')
+    setZoom(0.84)
+    updateHint('已重置主视图到默认观察模式')
+  }
+
+  const handleViewportKeyDown = (event) => {
+    const key = event.key.toLowerCase()
+
+    if (viewShortcutMap[key]) {
+      event.preventDefault()
+      handleSelectView(viewShortcutMap[key])
+      return
+    }
+
+    if (toolShortcutMap[key]) {
+      event.preventDefault()
+      handleSelectTool(toolShortcutMap[key])
+      return
+    }
+
+    if (key === 'escape') {
+      event.preventDefault()
+      handleSelectPart(null)
+      return
+    }
+
+    if (key === '0') {
+      event.preventDefault()
+      handleResetViewport()
+      return
+    }
+
+    if (event.key === '+' || event.key === '=') {
+      event.preventDefault()
+      handleZoomChange(zoom + 0.05)
+      return
+    }
+
+    if (event.key === '-' || event.key === '_') {
+      event.preventDefault()
+      handleZoomChange(zoom - 0.05)
+    }
+  }
 
   return (
     <div
@@ -95,7 +206,7 @@ export function SimulationViewport({
             </span>
           </div>
           <p className="mt-1 text-xs text-gray-500">
-            聚焦机器人三维姿态与部件联动，点击模型标注可快速查看对应参数与联动面板。
+            聚焦机器人三维姿态与部件联动，点击顶部部件标签可快速查看对应参数与联动面板。
           </p>
           <div className="mt-2 flex flex-wrap items-center gap-2">
             <span className="rounded-full border border-primary/16 bg-primary/10 px-2.5 py-1 text-[11px] font-medium text-primary">
@@ -110,7 +221,8 @@ export function SimulationViewport({
             <button
               key={view.id}
               type="button"
-              onClick={() => setSelectedView(view.id)}
+              data-testid={`view-chip-${view.id}`}
+              onClick={() => handleSelectView(view.id)}
               className={`rounded-full px-3 py-1.5 text-xs transition-colors ${
                 selectedView === view.id
                   ? 'bg-white/[0.08] text-white shadow-[0_8px_18px_rgba(2,6,23,0.12)]'
@@ -123,16 +235,40 @@ export function SimulationViewport({
         </div>
       </div>
 
-      <div className="relative overflow-hidden rounded-[1.55rem] border border-slate-900/5 bg-[linear-gradient(180deg,#eef3f8_0%,#e4ebf4_100%)] shadow-[inset_0_1px_0_rgba(255,255,255,0.55)]">
+      <div
+        className="relative overflow-hidden rounded-[1.55rem] border border-slate-900/5 bg-[linear-gradient(180deg,#eef3f8_0%,#e4ebf4_100%)] shadow-[inset_0_1px_0_rgba(255,255,255,0.55)]"
+        tabIndex={0}
+        role="region"
+        aria-label="数字孪生主视图"
+        onKeyDown={handleViewportKeyDown}
+      >
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_10%,rgba(255,255,255,0.82),rgba(255,255,255,0)_44%),linear-gradient(180deg,rgba(255,255,255,0.22),rgba(226,232,240,0.08))]" />
         <div className="pointer-events-none absolute inset-x-[16%] top-[8%] h-[20%] rounded-full border border-slate-300/22" />
         <div className="pointer-events-none absolute bottom-[-10%] left-1/2 h-[30%] w-[118%] -translate-x-1/2 rounded-full border border-slate-300/18 bg-[linear-gradient(180deg,rgba(226,232,240,0.18),rgba(255,255,255,0))]" />
 
-        <div className="absolute left-4 top-4 z-10 rounded-full bg-[rgba(15,23,42,0.76)] px-3 py-1.5 text-[11px] uppercase tracking-[0.16em] text-white shadow-[0_10px_24px_rgba(15,23,42,0.12)]">
-          {currentSelection ? currentSelection.badge : '整机总览'}
-        </div>
+        <button
+          type="button"
+          data-testid="viewport-reset-overview"
+          onClick={() => handleSelectPart(null)}
+          className={`absolute left-4 top-4 z-10 rounded-full px-3 py-1.5 text-[11px] uppercase tracking-[0.16em] shadow-[0_10px_24px_rgba(15,23,42,0.12)] transition-all ${
+            selectedPart
+              ? 'bg-[rgba(15,23,42,0.68)] text-white hover:bg-[rgba(15,23,42,0.8)]'
+              : 'bg-[rgba(15,23,42,0.82)] text-white ring-1 ring-white/12'
+          }`}
+        >
+          整机总览
+        </button>
         <div className="absolute right-4 top-4 z-10 rounded-full bg-white/74 px-3 py-1.5 text-[11px] uppercase tracking-[0.16em] text-slate-500 shadow-[0_8px_18px_rgba(15,23,42,0.08)]">
           视角 · {selectedViewMeta.label}
+        </div>
+        <div className="absolute left-4 top-14 z-10 hidden max-w-[30rem] items-center gap-2 rounded-full border border-white/55 bg-white/82 px-3 py-2 text-[11px] text-slate-600 shadow-[0_10px_24px_rgba(15,23,42,0.08)] md:flex">
+          <span className="h-2 w-2 rounded-full bg-primary shadow-[0_0_0_4px_rgba(249,115,22,0.18)]" />
+          <span data-testid="viewport-interaction-hint">{interactionHint}</span>
+        </div>
+        <div className="absolute left-4 right-4 top-[5.55rem] z-10 flex flex-wrap gap-2 md:hidden">
+          <div className="rounded-full border border-white/55 bg-white/82 px-3 py-2 text-[11px] text-slate-600 shadow-[0_10px_24px_rgba(15,23,42,0.08)]">
+            {interactionHint}
+          </div>
         </div>
 
         <div
@@ -150,29 +286,25 @@ export function SimulationViewport({
           </Suspense>
         </div>
 
-        <div className="pointer-events-none absolute inset-0 hidden xl:block">
-          {focusHotspots.map((hotspot) => {
-            const isActive = selectedPart === hotspot.id
-            const meta = partConfig[hotspot.id]
+        <div className="absolute left-4 top-[6.8rem] z-10 hidden max-w-[min(42rem,62vw)] flex-wrap gap-2 xl:flex">
+          {hotspotStackOrder.map((id) => {
+            const meta = partConfig[id]
+            const isActive = selectedPart === id
+            if (!meta) return null
 
             return (
               <button
-                key={hotspot.id}
+                key={`focus-chip-${id}`}
                 type="button"
-                onClick={() => setSelectedPart(isActive ? null : hotspot.id)}
-                className={`group pointer-events-auto absolute ${hotspot.position} rounded-[0.95rem] px-2.5 py-2 text-left text-xs transition-all ${
+                data-testid={`focus-chip-${id}`}
+                onClick={() => handleSelectPart(isActive ? null : id)}
+                className={`rounded-full border px-3 py-1.5 text-[11px] font-medium transition-all ${
                   isActive
-                    ? 'bg-[rgba(15,23,42,0.88)] text-white shadow-[0_10px_22px_rgba(15,23,42,0.14)] ring-1 ring-primary/18'
-                    : 'bg-[rgba(15,23,42,0.64)] text-gray-300 shadow-[0_8px_18px_rgba(15,23,42,0.1)] ring-1 ring-white/6 backdrop-blur-sm hover:bg-[rgba(15,23,42,0.74)] hover:text-white'
+                    ? 'border-primary/22 bg-primary/12 text-slate-900 shadow-[0_8px_18px_rgba(249,115,22,0.16)]'
+                    : 'border-white/55 bg-white/78 text-slate-600 hover:border-slate-300/80 hover:bg-white'
                 }`}
               >
-                <span className="flex items-center gap-2">
-                  <span className={`h-1.5 w-1.5 rounded-full ${isActive ? 'bg-primary' : 'bg-emerald-400/75'}`} />
-                  {hotspot.label}
-                </span>
-                <span className={`mt-1 ${isActive ? 'block text-[10px] text-orange-100/90' : 'hidden text-[10px] text-gray-400 group-hover:block'}`}>
-                  {meta.badge}
-                </span>
+                {hotspotLabelMap[id] ?? meta.label}
               </button>
             )
           })}
@@ -229,7 +361,8 @@ export function SimulationViewport({
                 type="button"
                 title={tool.label}
                 aria-pressed={isActive}
-                onClick={() => setSelectedTool(tool.id)}
+                data-testid={`viewport-tool-${tool.id}`}
+                onClick={() => handleSelectTool(tool.id)}
                 className={`flex h-9 w-9 items-center justify-center rounded-[0.8rem] transition-colors ${
                   isActive
                     ? 'bg-white/[0.14] text-white shadow-[inset_0_0_0_1px_rgba(249,115,22,0.25)]'
@@ -242,23 +375,6 @@ export function SimulationViewport({
           })}
         </div>
 
-        <div className="absolute bottom-4 right-4 hidden rounded-[1rem] border border-white/30 bg-[rgba(15,23,42,0.66)] p-2 shadow-[0_8px_20px_rgba(15,23,42,0.1)] lg:flex lg:flex-col">
-          <button
-            type="button"
-            onClick={() => setZoom((value) => Math.max(0.68, Number((value - 0.05).toFixed(2))))}
-            className="rounded-[0.8rem] px-3 py-2 text-sm text-gray-300 transition-colors hover:bg-white/10 hover:text-white"
-          >
-            -
-          </button>
-          <div className="px-3 py-1 text-center text-xs font-medium text-primary">{Math.round(zoom * 100)}%</div>
-          <button
-            type="button"
-            onClick={() => setZoom((value) => Math.min(1.04, Number((value + 0.05).toFixed(2))))}
-            className="rounded-[0.8rem] px-3 py-2 text-sm text-gray-300 transition-colors hover:bg-white/10 hover:text-white"
-          >
-            +
-          </button>
-        </div>
       </div>
     </div>
   )
