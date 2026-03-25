@@ -9,7 +9,7 @@ import {
 } from 'recharts'
 import { telemetryAxisStroke, telemetryGridStroke, telemetryTooltipStyle } from './telemetryData'
 
-export function TelemetryChartCard({ chart, series }) {
+export function TelemetryChartCard({ chart, latestLabel = 'Latest', series }) {
   const Icon = chart.icon
   const latestPoint = series.at(-1)
   const latestValue = latestPoint ? `${latestPoint.value}${chart.unit}` : `--${chart.unit}`
@@ -28,7 +28,7 @@ export function TelemetryChartCard({ chart, series }) {
         </div>
 
         <div className="text-right">
-          <div className="text-[10px] uppercase tracking-[0.2em] text-gray-500">Latest</div>
+          <div className="text-[10px] uppercase tracking-[0.2em] text-gray-500">{latestLabel}</div>
           <div className={`mt-2 text-2xl font-semibold tracking-tight ${chart.valueTone}`}>
             {latestValue}
           </div>

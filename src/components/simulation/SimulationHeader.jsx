@@ -1,24 +1,13 @@
 import { StatusBadge } from '../ui'
 
-function getStatusLabel(status) {
-  if (status === 'warning') return '注意'
-  if (status === 'danger') return '异常'
-  return '正常'
-}
-
-function getStatusHint(status) {
-  if (status === 'warning') return '需要关注'
-  if (status === 'danger') return '存在风险'
-  return '运行稳定'
-}
-
 export function SimulationHeader({
+  copy,
   selectedRobot,
   telemetryChips,
 }) {
-  const keyTelemetry = telemetryChips.filter((chip) => chip.label !== '工作区').slice(0, 2)
-  const statusLabel = getStatusLabel(selectedRobot.status)
-  const statusHint = getStatusHint(selectedRobot.status)
+  const keyTelemetry = telemetryChips.filter((chip) => chip.label !== copy.workspaceLabel).slice(0, 2)
+  const statusLabel = copy.status[selectedRobot.status] ?? copy.status.normal
+  const statusHint = copy.hint[selectedRobot.status] ?? copy.hint.normal
 
   return (
     <div className="border-b border-white/[0.06] bg-[rgba(7,11,17,0.9)] backdrop-blur-md">
@@ -28,26 +17,26 @@ export function SimulationHeader({
             <span className="h-2 w-2 rounded-full bg-emerald-400" />
           </div>
           <div className="min-w-0">
-            <div className="text-[10px] uppercase tracking-[0.26em] text-gray-500">仿真工作室</div>
+            <div className="text-[10px] uppercase tracking-[0.26em] text-gray-500">{copy.title}</div>
             <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1">
               <span className="truncate text-sm font-semibold tracking-[0.01em] text-white">
                 {selectedRobot.id}
               </span>
               <span className="rounded-full border border-white/[0.06] bg-white/[0.025] px-2 py-0.5 text-[11px] text-gray-400">
-                工位 · {selectedRobot.station}
+                {copy.robotPrefix} · {selectedRobot.station}
               </span>
               <StatusBadge status={selectedRobot.status}>{statusLabel}</StatusBadge>
             </div>
             <div className="mt-0.5 text-[11px] text-gray-500">
-              当前机器人 · {statusHint} · 控制台主状态
+              {copy.robotSummary} · {statusHint} · {copy.robotSuffix}
             </div>
           </div>
         </div>
 
         <div className="hidden items-center gap-2 md:flex">
           <div className="rounded-full border border-white/[0.06] bg-white/[0.02] px-3 py-1.5 text-xs text-gray-300">
-            <span className="text-[10px] uppercase tracking-[0.18em] text-gray-500">工作区</span>
-            <span className="ml-2 text-white/90">数字孪生调试</span>
+            <span className="text-[10px] uppercase tracking-[0.18em] text-gray-500">{copy.workspaceLabel}</span>
+            <span className="ml-2 text-white/90">{copy.workspaceValue}</span>
           </div>
         </div>
 

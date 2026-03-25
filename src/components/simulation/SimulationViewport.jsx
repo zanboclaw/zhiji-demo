@@ -1,5 +1,6 @@
 import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
-import { partConfig, partInsights, tools, viewOptions } from './simulationContent'
+import { useI18n } from '../../i18n/context'
+import { getSimulationContent, getSimulationPartDetails } from './simulationI18n'
 
 const RobotScene = lazy(() =>
   import('./RobotScene').then((module) => ({ default: module.RobotScene })),
@@ -10,43 +11,6 @@ const statusDotMap = {
   'text-sky-300': 'bg-sky-300',
   'text-amber-300': 'bg-amber-300',
   'text-primary': 'bg-primary',
-}
-
-const toolGuideMap = {
-  select: {
-    label: '选择模式',
-    shortHint: '点击顶部部件标签聚焦目标',
-    description: '用于快速定位部件并联动右侧参数面板。',
-  },
-  move: {
-    label: '移动模式',
-    shortHint: '观察姿态平移与支撑变化',
-    description: '聚焦位移与重心变化，适合检查支撑与偏移响应。',
-  },
-  rotate: {
-    label: '旋转模式',
-    shortHint: '观察模型旋转与关节联动',
-    description: '用于检查机体转向、姿态调整和旋转控制反馈。',
-  },
-  inspect: {
-    label: '巡检模式',
-    shortHint: '启用扫描辅助观察重点区域',
-    description: '强调局部检查与状态扫描，适合查看异常和关键部件。',
-  },
-  measure: {
-    label: '测量模式',
-    shortHint: '观察尺度、距离与构型关系',
-    description: '辅助查看部件尺度关系和空间尺寸感知。',
-  },
-}
-
-const hotspotLabelMap = {
-  head: '头部',
-  shoulder: '肩部',
-  arm: '上肢',
-  hip: '躯干',
-  knee: '膝部',
-  foot: '足端',
 }
 
 const hotspotStackOrder = ['head', 'shoulder', 'arm', 'hip', 'knee', 'foot']
@@ -72,10 +36,13 @@ function clampZoom(value) {
 }
 
 function SceneCanvasFallback() {
+  const { locale } = useI18n()
+  const content = getSimulationContent(locale)
+
   return (
     <div className="flex h-full min-h-[680px] w-full items-center justify-center bg-[linear-gradient(180deg,#eff3f8_0%,#e7edf5_100%)]">
       <div className="rounded-full border border-slate-300/60 bg-white/72 px-4 py-2 text-xs uppercase tracking-[0.22em] text-slate-500 shadow-[0_12px_24px_rgba(15,23,42,0.08)]">
-        Loading Scene
+        {content.viewport.canvasLoading}
       </div>
     </div>
   )
@@ -92,30 +59,33 @@ export function SimulationViewport({
   setSelectedView,
   setZoom,
 }) {
-  const [interactionHint, setInteractionHint] = useState('提示：点击顶部标签、使用右侧工具或按 1/2/3 切换视角')
+  const { locale } = useI18n()
+  const content = useMemo(() => getSimulationContent(locale), [locale])
+  const { parts, tools, viewport, views } = content
+  const [interactionHint, setInteractionHint] = useState(viewport.interactionHint)
   const selectedToolMeta = useMemo(
     () => tools.find((tool) => tool.id === selectedTool) ?? tools[0],
-    [selectedTool],
+    [selectedTool, tools],
   )
   const selectedViewMeta = useMemo(
-    () => viewOptions.find((view) => view.id === selectedView) ?? viewOptions[0],
-    [selectedView],
+    () => views.find((view) => view.id === selectedView) ?? views[0],
+    [selectedView, views],
   )
   const selectedToolGuide = useMemo(
-    () => toolGuideMap[selectedTool] ?? toolGuideMap.select,
-    [selectedTool],
+    () => viewport.guide[selectedTool] ?? viewport.guide.select,
+    [selectedTool, viewport.guide],
   )
   const selectedPartInsight = useMemo(
-    () => (selectedPart ? partInsights[selectedPart] : null),
-    [selectedPart],
+    () => getSimulationPartDetails(locale, selectedPart),
+    [locale, selectedPart],
   )
   useEffect(() => {
     const timer = window.setTimeout(() => {
-      setInteractionHint('提示：点击顶部标签、使用右侧工具或按 1/2/3 切换视角')
+      setInteractionHint(viewport.interactionHint)
     }, 2200)
 
     return () => window.clearTimeout(timer)
-  }, [interactionHint])
+  }, [interactionHint, viewport.interactionHint])
 
   const updateHint = (message) => {
     setInteractionHint(message)
@@ -123,23 +93,23 @@ export function SimulationViewport({
 
   const handleSelectPart = (nextPart) => {
     setSelectedPart(nextPart)
-    updateHint(nextPart ? `已聚焦 ${partConfig[nextPart]?.label ?? '目标部件'}` : '已切换到整机总览')
+    updateHint(nextPart ? viewport.focusedHint(parts[nextPart]?.label ?? viewport.defaultTitle) : viewport.overviewHint)
   }
 
   const handleSelectView = (viewId) => {
     setSelectedView(viewId)
-    updateHint(`已切换到${viewOptions.find((view) => view.id === viewId)?.label ?? '目标视角'}`)
+    updateHint(viewport.viewHint(views.find((view) => view.id === viewId)?.label ?? selectedViewMeta.label))
   }
 
   const handleSelectTool = (toolId) => {
     setSelectedTool(toolId)
-    updateHint(`已切换到${tools.find((tool) => tool.id === toolId)?.label ?? '工具'}模式`)
+    updateHint(viewport.toolHint(tools.find((tool) => tool.id === toolId)?.label ?? selectedToolMeta.label))
   }
 
   const handleZoomChange = (nextZoom) => {
     const clampedZoom = clampZoom(nextZoom)
     setZoom(clampedZoom)
-    updateHint(`主视图缩放 ${Math.round(clampedZoom * 100)}%`)
+    updateHint(viewport.zoomHint(Math.round(clampedZoom * 100)))
   }
 
   const handleResetViewport = () => {
@@ -147,7 +117,7 @@ export function SimulationViewport({
     setSelectedView('front')
     setSelectedTool('select')
     setZoom(0.84)
-    updateHint('已重置主视图到默认观察模式')
+    updateHint(viewport.resetHint)
   }
 
   const handleViewportKeyDown = (event) => {
@@ -196,17 +166,17 @@ export function SimulationViewport({
     >
       <div className="mb-2.5 flex flex-col gap-2.5 lg:flex-row lg:items-center lg:justify-between">
         <div className="min-w-0">
-          <div className="text-[11px] uppercase tracking-[0.22em] text-gray-500">数字孪生</div>
+          <div className="text-[11px] uppercase tracking-[0.22em] text-gray-500">{viewport.sectionLabel}</div>
           <div className="mt-1 flex flex-wrap items-center gap-2">
             <h3 className="text-sm font-semibold text-white">
-              {currentSelection ? currentSelection.label : '数字孪生主视图'}
+              {currentSelection ? currentSelection.label : viewport.defaultTitle}
             </h3>
             <span className="rounded-full border border-white/8 bg-white/[0.03] px-2.5 py-1 text-[11px] text-gray-400">
-              {currentSelection ? currentSelection.badge : '总体姿态'}
+              {currentSelection ? currentSelection.badge : viewport.defaultBadge}
             </span>
           </div>
           <p className="mt-1 text-xs text-gray-500">
-            聚焦机器人三维姿态与部件联动，点击顶部部件标签可快速查看对应参数与联动面板。
+            {viewport.description}
           </p>
           <div className="mt-2 flex flex-wrap items-center gap-2">
             <span className="rounded-full border border-primary/16 bg-primary/10 px-2.5 py-1 text-[11px] font-medium text-primary">
@@ -217,7 +187,7 @@ export function SimulationViewport({
         </div>
 
         <div className="inline-flex items-center gap-1 rounded-full border border-white/8 bg-white/[0.03] p-1">
-          {viewOptions.map((view) => (
+          {views.map((view) => (
             <button
               key={view.id}
               type="button"
@@ -239,7 +209,7 @@ export function SimulationViewport({
         className="relative overflow-hidden rounded-[1.55rem] border border-slate-900/5 bg-[linear-gradient(180deg,#eef3f8_0%,#e4ebf4_100%)] shadow-[inset_0_1px_0_rgba(255,255,255,0.55)]"
         tabIndex={0}
         role="region"
-        aria-label="数字孪生主视图"
+        aria-label={viewport.ariaLabel}
         onKeyDown={handleViewportKeyDown}
       >
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_10%,rgba(255,255,255,0.82),rgba(255,255,255,0)_44%),linear-gradient(180deg,rgba(255,255,255,0.22),rgba(226,232,240,0.08))]" />
@@ -256,10 +226,10 @@ export function SimulationViewport({
               : 'bg-[rgba(15,23,42,0.82)] text-white ring-1 ring-white/12'
           }`}
         >
-          整机总览
+          {viewport.resetOverview}
         </button>
         <div className="absolute right-4 top-4 z-10 rounded-full bg-white/74 px-3 py-1.5 text-[11px] uppercase tracking-[0.16em] text-slate-500 shadow-[0_8px_18px_rgba(15,23,42,0.08)]">
-          视角 · {selectedViewMeta.label}
+          {selectedViewMeta.label}
         </div>
         <div className="absolute left-4 top-14 z-10 hidden max-w-[30rem] items-center gap-2 rounded-full border border-white/55 bg-white/82 px-3 py-2 text-[11px] text-slate-600 shadow-[0_10px_24px_rgba(15,23,42,0.08)] md:flex">
           <span className="h-2 w-2 rounded-full bg-primary shadow-[0_0_0_4px_rgba(249,115,22,0.18)]" />
@@ -288,7 +258,7 @@ export function SimulationViewport({
 
         <div className="absolute left-4 top-[6.8rem] z-10 hidden max-w-[min(42rem,62vw)] flex-wrap gap-2 xl:flex">
           {hotspotStackOrder.map((id) => {
-            const meta = partConfig[id]
+            const meta = parts[id]
             const isActive = selectedPart === id
             if (!meta) return null
 
@@ -304,7 +274,7 @@ export function SimulationViewport({
                     : 'border-white/55 bg-white/78 text-slate-600 hover:border-slate-300/80 hover:bg-white'
                 }`}
               >
-                {hotspotLabelMap[id] ?? meta.label}
+                {meta.shortLabel ?? meta.label}
               </button>
             )
           })}
@@ -314,7 +284,7 @@ export function SimulationViewport({
           <div className="absolute bottom-4 left-4 z-10 hidden w-[312px] rounded-[1.15rem] border border-slate-900/10 bg-white/82 p-3 text-slate-700 shadow-[0_14px_28px_rgba(15,23,42,0.1)] backdrop-blur-sm md:block">
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
-                <div className="text-[10px] uppercase tracking-[0.18em] text-slate-500">部件聚焦</div>
+                <div className="text-[10px] uppercase tracking-[0.18em] text-slate-500">{viewport.sectionLabel}</div>
                 <div className="mt-1 text-sm font-semibold text-slate-800">{currentSelection?.label}</div>
               </div>
               <span className={`rounded-full border px-2.5 py-1 text-[10px] font-medium ${selectedPartInsight.badgeTone}`}>
@@ -339,10 +309,10 @@ export function SimulationViewport({
         ) : (
           <div className="absolute bottom-4 left-4 z-10 hidden md:flex md:flex-wrap md:items-center md:gap-2">
             <span className="rounded-full border border-slate-900/10 bg-white/82 px-3 py-2 text-[11px] font-medium text-slate-700 shadow-[0_10px_24px_rgba(15,23,42,0.08)]">
-              {currentSelection ? currentSelection.label : '整机总览'}
+              {currentSelection ? currentSelection.label : viewport.resetOverview}
             </span>
             <span className="rounded-full border border-slate-900/10 bg-white/72 px-3 py-2 text-[11px] text-slate-600 shadow-[0_10px_24px_rgba(15,23,42,0.08)]">
-              工具 · {selectedToolMeta.label}
+              {selectedToolMeta.label}
             </span>
             <span className="rounded-full border border-slate-900/10 bg-white/72 px-3 py-2 text-[11px] text-slate-600 shadow-[0_10px_24px_rgba(15,23,42,0.08)]">
               {selectedToolGuide.shortHint}

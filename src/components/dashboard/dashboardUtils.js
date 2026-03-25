@@ -1,3 +1,19 @@
+const statusLabels = {
+  en: { online: 'Online', warning: 'Attention', offline: 'Offline' },
+  zh: { online: '在线', warning: '注意', offline: '离线' },
+  fr: { online: 'En ligne', warning: 'Attention', offline: 'Hors ligne' },
+  ru: { online: 'В сети', warning: 'Внимание', offline: 'Оффлайн' },
+  de: { online: 'Online', warning: 'Warnung', offline: 'Offline' },
+}
+
+const signalLabels = {
+  en: { weak: 'Weak', strong: 'Strong' },
+  zh: { weak: '弱', strong: '强' },
+  fr: { weak: 'Faible', strong: 'Fort' },
+  ru: { weak: 'Слабый', strong: 'Сильный' },
+  de: { weak: 'Schwach', strong: 'Stark' },
+}
+
 export function generateTelemetry(seed, baseline, amplitude) {
   return Array.from({ length: 10 }, (_, index) => ({
     time: `${index + 1}s`,
@@ -29,12 +45,9 @@ export function getRobotStatusTone(status) {
   }[status]
 }
 
-export function getRobotStatusLabel(status) {
-  return {
-    online: '在线',
-    warning: '注意',
-    offline: '离线',
-  }[status]
+export function getRobotStatusLabel(status, locale = 'en') {
+  const labels = statusLabels[locale] ?? statusLabels.en
+  return labels[status]
 }
 
 export function getRobotStatusBadgeClass(status) {
@@ -64,6 +77,7 @@ export function getEStopCardClass(isEStopActive) {
     : 'border-white/8 bg-[rgba(12,17,24,0.86)] shadow-[0_16px_36px_rgba(2,6,23,0.18)]'
 }
 
-export function getSignalLabel(signal) {
-  return signal === 'weak' ? '弱' : '强'
+export function getSignalLabel(signal, locale = 'en') {
+  const labels = signalLabels[locale] ?? signalLabels.en
+  return labels[signal === 'weak' ? 'weak' : 'strong']
 }

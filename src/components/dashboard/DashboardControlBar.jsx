@@ -3,8 +3,10 @@ import { Button, Card } from '../ui'
 import { getEStopCardClass, getSignalLabel } from './dashboardUtils'
 
 export function DashboardControlBar({
+  copy,
   isEStopActive,
   isRemoteControl,
+  locale,
   selectedRobot,
   onToggleRemoteControl,
   onToggleEStop,
@@ -20,26 +22,26 @@ export function DashboardControlBar({
               {isEStopActive ? <ShieldAlert className="h-5 w-5" /> : <AlertCircle className="h-5 w-5" />}
             </div>
             <div>
-              <div className="text-[11px] uppercase tracking-[0.2em] text-gray-500">Safety Controls</div>
-              <div className="mt-1 text-base font-semibold text-white">E-STOP 紧急停止</div>
+              <div className="text-[11px] uppercase tracking-[0.2em] text-gray-500">{copy.eyebrow}</div>
+              <div className="mt-1 text-base font-semibold text-white">{copy.title}</div>
               <div className="mt-1 text-sm text-gray-500">
-                {isEStopActive ? '所有视频与遥测流已冻结，等待人工复位' : '一键触发全系统暂停与日志报警'}
+                {isEStopActive ? copy.activeDescription : copy.idleDescription}
               </div>
             </div>
           </div>
 
           <div className="flex flex-wrap items-center gap-2.5 text-sm">
             <div className="rounded-full border border-white/8 bg-white/[0.03] px-3.5 py-2 text-gray-300">
-              <span className="mr-2 text-gray-500">对象</span>
+              <span className="mr-2 text-gray-500">{copy.target}</span>
               <span className="text-white">{selectedRobot.id}</span>
             </div>
             <div className="inline-flex items-center gap-2 rounded-full border border-white/8 bg-white/[0.03] px-3.5 py-2 text-gray-300">
               <Battery className="h-4 w-4 text-primary" />
-              电量 {selectedRobot.battery}%
+              {copy.battery} {selectedRobot.battery}%
             </div>
             <div className="inline-flex items-center gap-2 rounded-full border border-white/8 bg-white/[0.03] px-3.5 py-2 text-gray-300">
               <Wifi className="h-4 w-4 text-status-success" />
-              信号 {getSignalLabel(selectedRobot.signal)}
+              {copy.signal} {getSignalLabel(selectedRobot.signal, locale)}
             </div>
             <div className={`inline-flex items-center gap-2 rounded-full border px-3.5 py-2 ${
               isRemoteControl
@@ -47,7 +49,7 @@ export function DashboardControlBar({
                 : 'border-white/8 bg-white/[0.03] text-gray-300'
             }`}>
               <Radio className="h-4 w-4" />
-              控制模式 {isRemoteControl ? '远程' : '本地'}
+              {copy.controlMode} {isRemoteControl ? copy.remote : copy.local}
             </div>
           </div>
         </div>
@@ -60,7 +62,7 @@ export function DashboardControlBar({
             onClick={onToggleRemoteControl}
           >
             <Radio className="mr-2 h-[18px] w-[18px]" />
-            {isRemoteControl ? '断开远程接管' : '远程接管'}
+            {isRemoteControl ? copy.disconnectRemote : copy.connectRemote}
           </Button>
           <Button
             variant={isEStopActive ? 'secondary' : 'danger'}
@@ -71,7 +73,7 @@ export function DashboardControlBar({
             onClick={onToggleEStop}
           >
             <AlertCircle className="mr-2 h-[18px] w-[18px]" />
-            {isEStopActive ? '解除 E-STOP' : 'E-STOP'}
+            {isEStopActive ? copy.releaseEstop : 'E-STOP'}
           </Button>
         </div>
       </div>

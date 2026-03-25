@@ -1,23 +1,21 @@
 import { motion } from 'framer-motion'
 import { Mail, PhoneCall } from 'lucide-react'
 import { Button, Card } from '../ui'
-import {
-  capabilities,
-  consultTopics,
-  partnershipTracks,
-  pricingPlans,
-  workflowStages,
-} from './homeContent'
+import { useI18n } from '../../i18n/context'
+import { getHomeCopy } from './homeI18n'
 
 export function CapabilitiesSection() {
+  const { locale } = useI18n()
+  const { capabilitiesSection, capabilities } = getHomeCopy(locale)
+
   return (
     <section className="py-20">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-12 text-center">
-          <div className="text-sm uppercase tracking-[0.3em] text-primary/70">Capabilities</div>
-          <h2 className="mt-3 text-3xl font-semibold text-white lg:text-4xl">四个核心能力模块</h2>
+          <div className="text-sm uppercase tracking-[0.3em] text-primary/70">{capabilitiesSection.label}</div>
+          <h2 className="mt-3 text-3xl font-semibold text-white lg:text-4xl">{capabilitiesSection.title}</h2>
           <p className="mx-auto mt-4 max-w-2xl text-gray-400">
-            每个模块只承担一个明确价值点，让首页信息层级更清楚，也更接近可路演的产品页面。
+            {capabilitiesSection.description}
           </p>
         </div>
 
@@ -57,18 +55,19 @@ export function CapabilitiesSection() {
 }
 
 export function WorkflowSection() {
+  const { locale } = useI18n()
+  const { workflowSection, workflowStages } = getHomeCopy(locale)
+
   return (
     <section className="border-y border-white/6 bg-background-secondary/30 py-20">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-12 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <div className="text-sm uppercase tracking-[0.3em] text-primary/70">Workflow</div>
-            <h2 className="mt-3 text-3xl font-semibold text-white lg:text-4xl">
-              从指令到机队执行的产品闭环
-            </h2>
+            <div className="text-sm uppercase tracking-[0.3em] text-primary/70">{workflowSection.label}</div>
+            <h2 className="mt-3 text-3xl font-semibold text-white lg:text-4xl">{workflowSection.title}</h2>
           </div>
           <p className="max-w-2xl text-gray-400">
-            用更偏产品叙事的方式，把输入、组合、验证、部署和监控串成一条可理解的业务链路。
+            {workflowSection.description}
           </p>
         </div>
 
@@ -106,16 +105,26 @@ export function WorkflowSection() {
 }
 
 export function PricingSection() {
+  const { locale } = useI18n()
+  const { pricingSection, pricingPlans } = getHomeCopy(locale)
+  const planChip = locale === 'fr'
+    ? { popular: 'Populaire', default: 'Plan' }
+    : locale === 'ru'
+      ? { popular: 'Популярно', default: 'План' }
+      : locale === 'de'
+        ? { popular: 'Beliebt', default: 'Plan' }
+        : { popular: 'Popular', default: 'Plan' }
+
   return (
     <section className="border-t border-white/6 bg-background-secondary/20 py-24">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-12 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <div className="text-sm uppercase tracking-[0.3em] text-primary/70">Pricing</div>
-            <h2 className="mt-3 text-3xl font-semibold text-white lg:text-4xl">收费方案</h2>
+            <div className="text-sm uppercase tracking-[0.3em] text-primary/70">{pricingSection.label}</div>
+            <h2 className="mt-3 text-3xl font-semibold text-white lg:text-4xl">{pricingSection.title}</h2>
           </div>
           <p className="max-w-2xl text-gray-400">
-            提供从验证版到企业级私有化部署的收费方案，适配个人验证、团队研发与企业采购场景。
+            {pricingSection.description}
           </p>
         </div>
 
@@ -129,7 +138,7 @@ export function PricingSection() {
                     <div className="mt-1 text-xs text-primary/80">{plan.tag}</div>
                   </div>
                   <div className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] text-gray-300">
-                    {plan.name === 'Studio' ? '热门' : '方案'}
+                    {plan.name === 'Studio' ? planChip.popular : planChip.default}
                   </div>
                 </div>
 
@@ -149,7 +158,7 @@ export function PricingSection() {
           </div>
 
           <div className="mt-6">
-            <Button variant="outline" className="rounded-full px-6">查看方案详情</Button>
+            <Button variant="outline" className="rounded-full px-6">{pricingSection.button}</Button>
           </div>
         </Card>
       </div>
@@ -158,16 +167,19 @@ export function PricingSection() {
 }
 
 export function PartnershipSection() {
+  const { locale } = useI18n()
+  const { integrationSection, partnershipTracks } = getHomeCopy(locale)
+
   return (
     <section className="border-t border-white/6 bg-background py-24">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-12 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <div className="text-sm uppercase tracking-[0.3em] text-primary/70">Business Cooperation</div>
-            <h2 className="mt-3 text-3xl font-semibold text-white lg:text-4xl">合作方式</h2>
+            <div className="text-sm uppercase tracking-[0.3em] text-primary/70">{integrationSection.label}</div>
+            <h2 className="mt-3 text-3xl font-semibold text-white lg:text-4xl">{integrationSection.title}</h2>
           </div>
           <p className="max-w-2xl text-gray-400">
-            面向硬件伙伴、渠道伙伴与行业方案伙伴，支持联合适配、联合拓展和解决方案共建。
+            {integrationSection.description}
           </p>
         </div>
 
@@ -202,7 +214,7 @@ export function PartnershipSection() {
           </div>
 
           <div className="mt-6">
-            <Button variant="outline" className="rounded-full px-6">查看合作方式</Button>
+            <Button variant="outline" className="rounded-full px-6">{integrationSection.button}</Button>
           </div>
         </Card>
       </div>
@@ -211,6 +223,9 @@ export function PartnershipSection() {
 }
 
 export function FinalCtaSection() {
+  const { locale } = useI18n()
+  const { finalCtaSection } = getHomeCopy(locale)
+
   return (
     <section className="py-24">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -220,36 +235,34 @@ export function FinalCtaSection() {
           <div className="relative">
             <div className="flex flex-col gap-8 border-b border-white/10 pb-8 lg:flex-row lg:items-center lg:justify-between">
               <div className="max-w-2xl">
-                <div className="text-sm uppercase tracking-[0.3em] text-primary/70">Final CTA</div>
-                <h2 className="mt-3 text-3xl font-semibold text-white lg:text-4xl">
-                  让机器人项目进入可落地的商务流程
-                </h2>
+                <div className="text-sm uppercase tracking-[0.3em] text-primary/70">{finalCtaSection.label}</div>
+                <h2 className="mt-3 text-3xl font-semibold text-white lg:text-4xl">{finalCtaSection.title}</h2>
                 <p className="mt-4 text-base leading-8 text-gray-400">
-                  从方案评估到部署落地，用更清晰的方式推进下一步。
+                  {finalCtaSection.description}
                 </p>
               </div>
               <div className="flex flex-col gap-3 sm:flex-row">
                 <Button variant="primary" size="lg" className="rounded-full px-8">
-                  获取部署资料
+                  {finalCtaSection.primaryButton}
                 </Button>
                 <Button variant="outline" size="lg" className="rounded-full px-8">
-                  查看合作方式
+                  {finalCtaSection.secondaryButton}
                 </Button>
               </div>
             </div>
 
             <div className="mt-8 grid gap-6 lg:grid-cols-[1.2fr_0.9fr]">
               <div>
-                <div className="text-sm uppercase tracking-[0.28em] text-primary/70">Business Contact</div>
-                <div className="mt-3 text-2xl font-semibold text-white">咨询范围</div>
+                <div className="text-sm uppercase tracking-[0.28em] text-primary/70">{finalCtaSection.contactLabel}</div>
+                <div className="mt-3 text-2xl font-semibold text-white">{finalCtaSection.contactTitle}</div>
                 <p className="mt-3 text-sm leading-7 text-gray-400">
-                  如果你正在评估采购方案、私有化部署、产品演示或生态合作，可通过以下方式与我们联系。
+                  {finalCtaSection.contactDescription}
                 </p>
 
                 <div className="mt-6">
-                  <div className="mb-3 text-[11px] uppercase tracking-[0.22em] text-gray-500">咨询方向</div>
+                  <div className="mb-3 text-[11px] uppercase tracking-[0.22em] text-gray-500">{finalCtaSection.consultLabel}</div>
                   <div className="flex flex-wrap gap-2">
-                    {consultTopics.map((topic) => (
+                    {finalCtaSection.topics.map((topic) => (
                       <div
                         key={topic}
                         className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-gray-300"
@@ -261,36 +274,36 @@ export function FinalCtaSection() {
                 </div>
 
                 <div className="mt-6 grid gap-3 sm:grid-cols-2">
-                  <div className="sm:col-span-2 text-[11px] uppercase tracking-[0.22em] text-gray-500">联系方式</div>
+                  <div className="sm:col-span-2 text-[11px] uppercase tracking-[0.22em] text-gray-500">{finalCtaSection.contactInfoLabel}</div>
                   <div className="flex items-center gap-3 rounded-[1.2rem] border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-gray-300">
                     <Mail className="h-4 w-4 text-primary" />
-                    <span>business@robotfigma.ai</span>
+                    <span>{finalCtaSection.email}</span>
                   </div>
                   <div className="flex items-center gap-3 rounded-[1.2rem] border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-gray-300">
                     <PhoneCall className="h-4 w-4 text-primary" />
-                    <span>400-800-2048</span>
+                    <span>{finalCtaSection.phone}</span>
                   </div>
                 </div>
               </div>
 
               <div className="rounded-[1.65rem] border border-primary/18 bg-[linear-gradient(180deg,rgba(249,115,22,0.12),rgba(255,255,255,0.02))] p-6 shadow-[0_20px_40px_rgba(249,115,22,0.08)]">
-                <div className="text-sm uppercase tracking-[0.22em] text-primary/75">Priority Contact</div>
-                <div className="mt-3 text-2xl font-semibold text-white">立即发起咨询</div>
+                <div className="text-sm uppercase tracking-[0.22em] text-primary/75">{finalCtaSection.quickLabel}</div>
+                <div className="mt-3 text-2xl font-semibold text-white">{finalCtaSection.quickTitle}</div>
                 <div className="mt-3 text-sm leading-7 text-gray-300">
-                  提交项目方向后，我们将在 1 个工作日内安排商务或产品团队与你对接。
+                  {finalCtaSection.quickDescription}
                 </div>
 
                 <div className="mt-6 rounded-[1.2rem] border border-white/10 bg-black/20 px-4 py-3">
-                  <div className="text-[11px] uppercase tracking-[0.2em] text-gray-500">适用场景</div>
-                  <div className="mt-2 text-sm text-white">适用于采购评估、部署咨询、合作对接。</div>
+                  <div className="text-[11px] uppercase tracking-[0.2em] text-gray-500">{finalCtaSection.quickScopeLabel}</div>
+                  <div className="mt-2 text-sm text-white">{finalCtaSection.quickScopeValue}</div>
                 </div>
 
                 <div className="mt-6">
-                  <Button variant="primary" className="w-full rounded-full">立即发起咨询</Button>
+                  <Button variant="primary" className="w-full rounded-full">{finalCtaSection.quickButton}</Button>
                 </div>
 
                 <div className="mt-4 text-center text-sm text-gray-400">
-                  或发送邮件至 <span className="text-white">business@robotfigma.ai</span>
+                  {finalCtaSection.quickFooter} <span className="text-white">{finalCtaSection.email}</span>
                 </div>
               </div>
             </div>

@@ -1,9 +1,9 @@
 import { Card } from '../ui'
 
-export function TelemetryFallback() {
+export function TelemetryFallback({ title = 'Realtime telemetry charts' }) {
   return (
     <Card className="rounded-[1.75rem] border-white/8 bg-[rgba(14,19,27,0.9)] p-5 shadow-[0_14px_34px_rgba(2,6,23,0.18)]">
-      <div className="mb-4 text-lg font-semibold text-white">实时遥测图表</div>
+      <div className="mb-4 text-lg font-semibold text-white">{title}</div>
       <div className="grid gap-6 lg:grid-cols-2">
         {[0, 1].map((index) => (
           <div

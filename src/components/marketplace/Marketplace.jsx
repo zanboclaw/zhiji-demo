@@ -1,15 +1,17 @@
 import { useMemo, useState } from 'react'
 import { AnimatePresence } from 'framer-motion'
 import { useMarketplaceStore } from '../../store'
+import { useI18n } from '../../i18n/context'
 import { filterAndSortSkills } from './marketplaceHelpers'
-import { sortOptions } from './marketplaceData'
 import { MarketplaceHeader } from './MarketplaceHeader'
 import { MarketplaceFilters } from './MarketplaceFilters'
 import { MarketplaceCard } from './MarketplaceCard'
 import { MarketplaceDetailModal } from './MarketplaceDetailModal'
 import { MarketplaceToast } from './MarketplaceToast'
+import { getMarketplaceCopy } from './marketplaceI18n'
 
 export function Marketplace() {
+  const { locale } = useI18n()
   const {
     selectedCategory,
     selectedSort,
@@ -24,20 +26,24 @@ export function Marketplace() {
   const [selectedSkill, setSelectedSkill] = useState(null)
   const [downloadingId, setDownloadingId] = useState(null)
   const [toast, setToast] = useState('')
+  const content = useMemo(() => getMarketplaceCopy(locale), [locale])
+  const { filters, header, list, card, modal, skillsData } = content
+  const sortOptions = filters.sortOptions
+  const categories = filters.categories
   const installedCount = installedSkills.length
 
   const filteredSkills = useMemo(
-    () => filterAndSortSkills({ selectedCategory, searchQuery, selectedSort }),
-    [searchQuery, selectedCategory, selectedSort],
+    () => filterAndSortSkills({ skillsData, selectedCategory, searchQuery, selectedSort }),
+    [searchQuery, selectedCategory, selectedSort, skillsData],
   )
-  const currentSortLabel = sortOptions.find((option) => option.id === selectedSort)?.label ?? '最受欢迎'
+  const currentSortLabel = sortOptions.find((option) => option.id === selectedSort)?.label ?? sortOptions[0]?.label
 
   const handleDownload = (skillId) => {
     setDownloadingId(skillId)
     window.setTimeout(() => {
       installSkill(skillId)
       setDownloadingId(null)
-      setToast('技能已同步至云端')
+      setToast(list.installToast)
       window.setTimeout(() => setToast(''), 2400)
     }, 1200)
   }
@@ -45,9 +51,12 @@ export function Marketplace() {
   return (
     <div className="min-h-screen bg-[linear-gradient(180deg,rgba(5,8,13,0.97)_0%,rgba(5,7,11,0.98)_100%)] px-4 py-8 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-[1400px]">
-        <MarketplaceHeader installedCount={installedCount} />
+        <MarketplaceHeader copy={header} installedCount={installedCount} />
 
         <MarketplaceFilters
+          categories={categories}
+          copy={filters}
+          skillsData={skillsData}
           selectedCategory={selectedCategory}
           selectedSort={selectedSort}
           searchQuery={searchQuery}
@@ -58,11 +67,11 @@ export function Marketplace() {
         >
           <div className="mb-5 flex flex-col gap-2 border-b border-white/8 pb-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <div className="text-xs uppercase tracking-[0.2em] text-gray-500">Skill Directory</div>
-              <div className="mt-2 text-lg font-medium text-white">可浏览技能</div>
-              <div className="mt-1 text-sm text-gray-400">共 {filteredSkills.length} 个技能，当前按“{currentSortLabel}”排序</div>
+              <div className="text-xs uppercase tracking-[0.2em] text-gray-500">{list.eyebrow}</div>
+              <div className="mt-2 text-lg font-medium text-white">{list.title}</div>
+              <div className="mt-1 text-sm text-gray-400">{list.countLabel(filteredSkills.length, currentSortLabel)}</div>
             </div>
-            <span className="text-sm text-gray-500">安装后自动同步至 Studio 与 Fleet OS</span>
+            <span className="text-sm text-gray-500">{list.syncHint}</span>
           </div>
 
           <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
@@ -72,6 +81,7 @@ export function Marketplace() {
 
               return (
                 <MarketplaceCard
+                  copy={card}
                   key={skill.id}
                   skill={skill}
                   index={index}
@@ -88,6 +98,7 @@ export function Marketplace() {
         <AnimatePresence>
           {selectedSkill && (
             <MarketplaceDetailModal
+              copy={modal}
               selectedSkill={selectedSkill}
               onClose={() => setSelectedSkill(null)}
               onDownload={handleDownload}

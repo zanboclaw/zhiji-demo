@@ -2,7 +2,7 @@ import { motion } from 'framer-motion'
 import { X, Play, Download, Cpu } from 'lucide-react'
 import { Button, Card } from '../ui'
 
-export function MarketplaceDetailModal({ selectedSkill, onClose, onDownload }) {
+export function MarketplaceDetailModal({ copy, selectedSkill, onClose, onDownload }) {
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -27,7 +27,7 @@ export function MarketplaceDetailModal({ selectedSkill, onClose, onDownload }) {
               <div>
                 <h2 className="text-2xl font-semibold text-white">{selectedSkill.name}</h2>
                 <p className="mt-1 text-sm text-gray-400">
-                  版本 {selectedSkill.version} · {selectedSkill.author}
+                  {copy.versionBy(selectedSkill.version, selectedSkill.author)}
                 </p>
               </div>
             </div>
@@ -43,13 +43,13 @@ export function MarketplaceDetailModal({ selectedSkill, onClose, onDownload }) {
           <div className="grid gap-5 lg:grid-cols-[1.1fr_0.9fr]">
             <div className="space-y-5">
               <div className="rounded-3xl border border-white/8 bg-white/[0.035] p-5">
-                <div className="text-sm font-medium text-white">核心能力</div>
+                <div className="text-sm font-medium text-white">{copy.core}</div>
                 <p className="mt-3 text-sm leading-6 text-gray-400">{selectedSkill.description}</p>
               </div>
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="rounded-3xl border border-white/8 bg-white/[0.035] p-5">
-                  <div className="mb-3 text-sm font-medium text-white">输入</div>
+                  <div className="mb-3 text-sm font-medium text-white">{copy.inputs}</div>
                   <div className="space-y-2 text-sm text-gray-400">
                     {selectedSkill.inputs.map((item) => (
                       <div key={item}>{item}</div>
@@ -57,7 +57,7 @@ export function MarketplaceDetailModal({ selectedSkill, onClose, onDownload }) {
                   </div>
                 </div>
                 <div className="rounded-3xl border border-white/8 bg-white/[0.035] p-5">
-                  <div className="mb-3 text-sm font-medium text-white">输出</div>
+                  <div className="mb-3 text-sm font-medium text-white">{copy.outputs}</div>
                   <div className="space-y-2 text-sm text-gray-400">
                     {selectedSkill.outputs.map((item) => (
                       <div key={item}>{item}</div>
@@ -69,7 +69,7 @@ export function MarketplaceDetailModal({ selectedSkill, onClose, onDownload }) {
 
             <div className="space-y-5">
               <div className="rounded-3xl border border-white/8 bg-white/[0.035] p-5">
-                <div className="text-sm font-medium text-white">适用场景</div>
+                <div className="text-sm font-medium text-white">{copy.scenes}</div>
                 <div className="mt-3 flex flex-wrap gap-2">
                   {selectedSkill.scenes.map((scene) => (
                     <span
@@ -88,7 +88,7 @@ export function MarketplaceDetailModal({ selectedSkill, onClose, onDownload }) {
                   <div className="absolute inset-0 flex items-center justify-center">
                     <div className="text-center">
                       <Play className="mx-auto h-14 w-14 text-primary/85" />
-                      <div className="mt-3 text-sm text-gray-400">仿真演示占位</div>
+                      <div className="mt-3 text-sm text-gray-400">{copy.preview}</div>
                     </div>
                   </div>
                 </div>
@@ -103,11 +103,11 @@ export function MarketplaceDetailModal({ selectedSkill, onClose, onDownload }) {
               onClick={() => onDownload(selectedSkill.id)}
             >
               <Download className="mr-2 h-4 w-4" />
-              获取技能
+              {copy.install}
             </Button>
             <Button variant="secondary" className="flex-1 rounded-full border border-white/10 bg-white/[0.04] shadow-none">
               <Play className="mr-2 h-4 w-4" />
-              仿真测试
+              {copy.test}
             </Button>
           </div>
         </Card>

@@ -3,6 +3,7 @@ import { Cpu, Star, Download, Check, CloudUpload } from 'lucide-react'
 import { Button, Card } from '../ui'
 
 export function MarketplaceCard({
+  copy,
   skill,
   index,
   isInstalled,
@@ -26,7 +27,7 @@ export function MarketplaceCard({
             </div>
             <div className="min-w-0">
               <div className="text-[11px] uppercase tracking-[0.22em] text-gray-500">{skill.author}</div>
-              <div className="mt-2 text-xs text-gray-500">版本 {skill.version}</div>
+              <div className="mt-2 text-xs text-gray-500">{copy.version} {skill.version}</div>
             </div>
           </div>
 
@@ -38,7 +39,7 @@ export function MarketplaceCard({
                   : 'border-white/8 bg-white/[0.03] text-gray-400'
               }`}
             >
-              {isInstalled ? '已部署' : '待安装'}
+              {isInstalled ? copy.deployed : copy.pending}
             </span>
             <div className="flex items-center gap-1 rounded-full bg-white/[0.03] px-2.5 py-1 text-xs text-gray-300">
               <Star className="h-3.5 w-3.5 fill-status-warning text-status-warning" />
@@ -55,7 +56,7 @@ export function MarketplaceCard({
             </div>
 
             <div className="shrink-0 text-right">
-              <div className="text-[11px] uppercase tracking-[0.18em] text-gray-500">安装量</div>
+              <div className="text-[11px] uppercase tracking-[0.18em] text-gray-500">{copy.downloads}</div>
               <div className="mt-1 text-sm font-medium text-gray-300">{skill.downloads.toLocaleString()}</div>
             </div>
           </div>
@@ -74,16 +75,16 @@ export function MarketplaceCard({
 
         <div className="mt-5 grid gap-4 border-t border-white/8 pt-4 text-sm xl:grid-cols-[minmax(0,1fr)_auto]">
           <div>
-            <div className="text-[11px] uppercase tracking-[0.18em] text-gray-500">部署状态</div>
+            <div className="text-[11px] uppercase tracking-[0.18em] text-gray-500">{copy.deploymentStatus}</div>
             <div className="mt-2 text-sm text-white">
-              {isInstalled ? '已同步至 Studio / Fleet OS' : '安装后自动接入平台工作流'}
+              {isInstalled ? copy.synced : copy.installHint}
             </div>
             <div className="mt-1 text-xs text-gray-500">
-              输入 {skill.inputs[0]} · 输出 {skill.outputs[0]}
+              {copy.io(skill.inputs[0], skill.outputs[0])}
             </div>
           </div>
           <div className="xl:text-right">
-            <div className="text-[11px] uppercase tracking-[0.18em] text-gray-500">兼容设备</div>
+            <div className="text-[11px] uppercase tracking-[0.18em] text-gray-500">{copy.devices}</div>
             <div className="mt-2 text-sm text-gray-300">{skill.devices.join(' / ')}</div>
           </div>
         </div>
@@ -95,7 +96,7 @@ export function MarketplaceCard({
             onClick={() => onShowDetails(skill)}
             className="px-0 text-gray-400 hover:bg-transparent hover:text-white"
           >
-            详情
+            {copy.details}
           </Button>
           <Button
             variant="secondary"
@@ -118,12 +119,12 @@ export function MarketplaceCard({
             ) : isInstalled ? (
               <>
                 <Check className="mr-1 h-4 w-4" />
-                已部署
+                {copy.deployed}
               </>
             ) : (
               <>
                 <Download className="mr-1 h-4 w-4" />
-                获取技能
+                {copy.install}
               </>
             )}
           </Button>

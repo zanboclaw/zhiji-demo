@@ -9,52 +9,98 @@ import {
 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { Button, Card } from '../ui'
-import {
-  aiMessage,
-  chatHighlights,
-  kpiTargets,
-  orchestrationSteps,
-  promptText,
-} from './homeContent'
+import { useI18n } from '../../i18n/context'
+import { getHomeCopy } from './homeI18n'
 import { AnimatedNumber, TypingDots } from './homeShared'
 
+const PROMPT_TYPING_INTERVAL = 45
+const PROMPT_TYPING_DURATION = 2200
+const AI_TYPING_INTERVAL = 22
+const AI_TYPING_DURATION = 2400
+const HERO_META_REVEAL_DELAY = 1400
+
 export function HomeHeroSection() {
+  const { locale } = useI18n()
+  const content = useMemo(() => getHomeCopy(locale), [locale])
+  const { hero, aiMessage, chatHighlights, kpiTargets, orchestrationSteps, promptText } = content
+  const chromeTitle = locale === 'fr'
+    ? 'Session de composition des tâches'
+    : locale === 'ru'
+      ? 'Сессия конструктора задач'
+      : locale === 'de'
+        ? 'Task-Composer-Sitzung'
+        : 'Task Composer Session'
+  const assistantTitle = locale === 'fr'
+    ? 'Assistant de tâche'
+    : locale === 'ru'
+      ? 'Помощник по задачам'
+      : locale === 'de'
+        ? 'Task-Assistent'
+        : 'Task Assistant'
+  const assistantSubtitle = locale === 'fr'
+    ? 'Orchestrez les tâches robotisées par conversation'
+    : locale === 'ru'
+      ? 'Оркестрируйте задачи робота через диалог'
+      : locale === 'de'
+        ? 'Robotikaufgaben per Dialog orchestrieren'
+        : 'Orchestrate robot tasks through conversation'
   const [typedPromptLength, setTypedPromptLength] = useState(0)
   const [typedAiLength, setTypedAiLength] = useState(0)
-  const typedPrompt = useMemo(() => promptText.slice(0, typedPromptLength), [typedPromptLength])
-  const typedAi = useMemo(() => aiMessage.slice(0, typedAiLength), [typedAiLength])
+  const [showGeneratedMeta, setShowGeneratedMeta] = useState(false)
+  const typedPrompt = useMemo(() => promptText.slice(0, typedPromptLength), [promptText, typedPromptLength])
+  const typedAi = useMemo(() => aiMessage.slice(0, typedAiLength), [aiMessage, typedAiLength])
 
   useEffect(() => {
+    setTypedPromptLength(0)
+    setTypedAiLength(0)
+    setShowGeneratedMeta(false)
+  }, [aiMessage, promptText])
+
+  useEffect(() => {
+    const promptStep = Math.max(1, Math.ceil(promptText.length / (PROMPT_TYPING_DURATION / PROMPT_TYPING_INTERVAL)))
     const promptTimer = window.setInterval(() => {
       setTypedPromptLength((current) => {
         if (current >= promptText.length) {
           window.clearInterval(promptTimer)
           return current
         }
-        return current + 1
+        return Math.min(promptText.length, current + promptStep)
       })
-    }, 45)
+    }, PROMPT_TYPING_INTERVAL)
 
     return () => window.clearInterval(promptTimer)
-  }, [])
+  }, [promptText])
 
   useEffect(() => {
     if (typedPromptLength < promptText.length) {
       return undefined
     }
 
+    const aiStep = Math.max(1, Math.ceil(aiMessage.length / (AI_TYPING_DURATION / AI_TYPING_INTERVAL)))
     const aiTimer = window.setInterval(() => {
       setTypedAiLength((current) => {
         if (current >= aiMessage.length) {
           window.clearInterval(aiTimer)
           return current
         }
-        return current + 2
+        return Math.min(aiMessage.length, current + aiStep)
       })
-    }, 22)
+    }, AI_TYPING_INTERVAL)
 
     return () => window.clearInterval(aiTimer)
-  }, [typedPromptLength])
+  }, [aiMessage, promptText.length, typedPromptLength])
+
+  useEffect(() => {
+    if (typedPromptLength < promptText.length) {
+      return undefined
+    }
+
+    const metaTimer = window.setTimeout(() => {
+      setShowGeneratedMeta(true)
+    }, HERO_META_REVEAL_DELAY)
+
+    return () => window.clearTimeout(metaTimer)
+  }, [promptText.length, typedPromptLength])
 
   return (
     <section className="relative overflow-hidden">
@@ -72,7 +118,7 @@ export function HomeHeroSection() {
               className="mb-5 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-4 py-2 text-xs text-primary sm:text-sm"
             >
               <Sparkles className="h-4 w-4" />
-              具身智能的协议层与开发平台
+              {hero.badge}
             </motion.div>
 
             <motion.h1
@@ -81,9 +127,9 @@ export function HomeHeroSection() {
               transition={{ duration: 0.8, delay: 0.05 }}
               className="max-w-3xl text-4xl font-semibold leading-[1.02] text-white sm:text-5xl lg:text-[4.5rem]"
             >
-              把自然语言
+              {hero.titleLead}
               <span className="block bg-gradient-to-r from-primary via-orange-200 to-sky-300 bg-clip-text text-transparent">
-                编译成机器人行为
+                {hero.titleAccent}
               </span>
             </motion.h1>
 
@@ -93,8 +139,7 @@ export function HomeHeroSection() {
               transition={{ duration: 0.8, delay: 0.12 }}
               className="mt-5 max-w-xl text-base leading-8 text-gray-400 sm:text-lg"
             >
-              知肌纪把 VLA 编译、技能部署、数字孪生仿真和机队控制台收敛到一条工作流里，
-              帮助团队用更少的人力和更短的时间完成机器人验证与发布。
+              {hero.description}
             </motion.p>
 
             <motion.div
@@ -109,13 +154,13 @@ export function HomeHeroSection() {
                   size="lg"
                   className="w-full rounded-full px-8 shadow-[0_0_30px_rgba(59,130,246,0.3)] sm:w-auto"
                 >
-                  开始构建
+                  {hero.primaryCta}
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               </Link>
               <Link to="/dashboard">
                 <Button variant="outline" size="lg" className="w-full rounded-full px-8 sm:w-auto">
-                  查看实时监控
+                  {hero.secondaryCta}
                 </Button>
               </Link>
             </motion.div>
@@ -128,10 +173,10 @@ export function HomeHeroSection() {
             >
               <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5">
                 <span className="h-2 w-2 rounded-full bg-status-success" />
-                Studio / Edge / OS 一体化
+                {hero.chips[0]}
               </span>
               <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5">
-                支持安防、仓储、接待、工业四类场景
+                {hero.chips[1]}
               </span>
             </motion.div>
 
@@ -195,7 +240,7 @@ export function HomeHeroSection() {
                   <span className="h-3 w-3 rounded-full bg-status-success" />
                 </div>
                 <div className="text-[10px] uppercase tracking-[0.28em] text-gray-500 sm:text-xs sm:tracking-[0.3em]">
-                  VLA Compiler Session
+                  {chromeTitle}
                 </div>
               </div>
 
@@ -207,10 +252,10 @@ export function HomeHeroSection() {
                   <div className="mb-4 flex flex-wrap items-center justify-between gap-3 border-b border-white/8 pb-4">
                     <div>
                       <div className="text-[11px] uppercase tracking-[0.28em] text-primary/70">
-                        A1 Assistant Mode
+                        {assistantTitle}
                       </div>
                       <div className="mt-1 text-base font-semibold text-white">
-                        用对话完成机器人任务编排
+                        {assistantSubtitle}
                       </div>
                     </div>
                     <div className="flex flex-wrap gap-2">
@@ -231,20 +276,20 @@ export function HomeHeroSection() {
                       <div className="rounded-[1.3rem] border border-white/8 bg-black/20 p-3">
                         <div className="mb-2 flex items-center gap-2 text-[11px] uppercase tracking-[0.24em] text-gray-500">
                           <MessageSquareText className="h-4 w-4 text-primary/80" />
-                          Conversation Context
+                          {hero.contextTitle}
                         </div>
                         <div className="text-sm leading-7 text-gray-400">
-                          A1 正在根据安防巡逻场景自动补全感知链路、任务分支和异常告警逻辑。
+                          {hero.contextDescription}
                         </div>
                       </div>
 
                       <div className="rounded-[1.3rem] border border-white/8 bg-black/20 p-3">
-                        <div className="text-[11px] uppercase tracking-[0.24em] text-gray-500">Pipeline</div>
+                        <div className="text-[11px] uppercase tracking-[0.24em] text-gray-500">{hero.pipelineTitle}</div>
                         <div className="mt-3 space-y-2">
                           {orchestrationSteps.map((step, index) => (
                             <div key={step} className="flex items-center gap-2 text-sm text-gray-300">
                               <div className={`flex h-5 w-5 items-center justify-center rounded-full text-[11px] ${
-                                typedAiLength === aiMessage.length || index === 0
+                                showGeneratedMeta || index === 0
                                   ? 'bg-primary/20 text-primary'
                                   : 'bg-white/5 text-gray-500'
                               }`}>
@@ -265,8 +310,8 @@ export function HomeHeroSection() {
                     </div>
 
                     <div className="flex justify-start">
-                      <div className="max-w-[90%] rounded-[1.4rem] rounded-bl-md border border-white/10 bg-white/5 px-4 py-4 text-sm leading-7 text-gray-200 shadow-[0_14px_30px_rgba(0,0,0,0.28)]">
-                        <div className="mb-3 flex items-center gap-2">
+                      <div className="w-full rounded-[1.4rem] rounded-bl-md border border-white/10 bg-white/5 px-4 py-3.5 text-sm leading-6 text-gray-200 shadow-[0_14px_30px_rgba(0,0,0,0.28)]">
+                        <div className="mb-2.5 flex items-center gap-2">
                           <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/15 text-primary">
                             <Bot className="h-4 w-4" />
                           </div>
@@ -280,39 +325,39 @@ export function HomeHeroSection() {
                         <motion.div
                           initial={{ opacity: 0, y: 10 }}
                           animate={{
-                            opacity: typedAiLength === aiMessage.length ? 1 : 0,
-                            y: typedAiLength === aiMessage.length ? 0 : 10,
+                            opacity: showGeneratedMeta ? 1 : 0,
+                            y: showGeneratedMeta ? 0 : 10,
                           }}
-                          className="mt-4 grid gap-3 sm:grid-cols-3"
+                          className="mt-3 grid gap-3 sm:grid-cols-3"
                         >
                           <div className="rounded-2xl border border-white/8 bg-black/20 p-3">
                             <div className="text-[11px] uppercase tracking-[0.24em] text-gray-500">Intent</div>
-                            <div className="mt-2 text-sm text-white">夜间巡检</div>
+                            <div className="mt-2 text-sm text-white">{hero.intentLabel}</div>
                           </div>
                           <div className="rounded-2xl border border-white/8 bg-black/20 p-3">
                             <div className="text-[11px] uppercase tracking-[0.24em] text-gray-500">Action Set</div>
-                            <div className="mt-2 text-sm text-white">巡逻 / 拍照 / 告警</div>
+                            <div className="mt-2 text-sm text-white">{hero.actionLabel}</div>
                           </div>
                           <div className="rounded-2xl border border-white/8 bg-black/20 p-3">
                             <div className="text-[11px] uppercase tracking-[0.24em] text-gray-500">Output</div>
-                            <div className="mt-2 text-sm text-white">Behavior Tree</div>
+                            <div className="mt-2 text-sm text-white">{hero.outputLabel}</div>
                           </div>
                         </motion.div>
 
                         <motion.div
                           initial={{ opacity: 0, y: 10 }}
                           animate={{
-                            opacity: typedAiLength === aiMessage.length ? 1 : 0,
-                            y: typedAiLength === aiMessage.length ? 0 : 10,
+                            opacity: showGeneratedMeta ? 1 : 0,
+                            y: showGeneratedMeta ? 0 : 10,
                           }}
-                          className="mt-4 flex flex-wrap gap-2"
+                          className="mt-3 flex flex-wrap gap-2"
                         >
                           <div className="inline-flex items-center gap-2 rounded-full border border-emerald-400/15 bg-emerald-400/10 px-3 py-1.5 text-xs text-emerald-300">
                             <CheckCircle2 className="h-3.5 w-3.5" />
-                            已生成可执行逻辑树
+                            {hero.generatedTag}
                           </div>
                           <div className="inline-flex items-center gap-2 rounded-full border border-primary/15 bg-primary/10 px-3 py-1.5 text-xs text-primary">
-                            下一步：进入仿真验证
+                            {hero.nextTag}
                           </div>
                         </motion.div>
                       </div>
@@ -321,7 +366,7 @@ export function HomeHeroSection() {
                     <div className="rounded-[1.3rem] border border-white/8 bg-black/25 p-3">
                       <div className="flex items-center gap-3">
                         <div className="flex-1 rounded-2xl border border-white/8 bg-white/[0.03] px-4 py-3 text-sm text-gray-500">
-                          继续补充场景约束，例如“进入禁区时先录像，再通知值班室”
+                          {hero.inputPlaceholder}
                         </div>
                         <button
                           type="button"

@@ -4,7 +4,6 @@ import { ProgressBar } from '../ui'
 import {
   getDefaultOpenSectionKeys,
   orderSectionsForContext,
-  toolModeProfiles,
 } from './simulationContent'
 
 function SectionCard({ section, isOpen, onToggle, recommendationLabel }) {
@@ -96,6 +95,7 @@ function SectionCard({ section, isOpen, onToggle, recommendationLabel }) {
 }
 
 export function SimulationParameterSidebar({
+  copy,
   currentSelection,
   sections,
   selectedPart,
@@ -103,6 +103,7 @@ export function SimulationParameterSidebar({
   selectedTool,
   selectedToolLabel,
   selectedViewLabel,
+  toolProfile,
 }) {
   const [openKeys, setOpenKeys] = useState(['compute'])
   const sectionKeySignature = useMemo(
@@ -113,7 +114,6 @@ export function SimulationParameterSidebar({
     () => (sectionKeySignature ? sectionKeySignature.split('|') : []),
     [sectionKeySignature],
   )
-  const toolProfile = toolModeProfiles[selectedTool] ?? toolModeProfiles.select
   const orderedSections = useMemo(
     () => orderSectionsForContext(sections, selectedTool, selectedPart),
     [sections, selectedPart, selectedTool],
@@ -146,16 +146,16 @@ export function SimulationParameterSidebar({
     >
       <div className="overflow-hidden rounded-[1.8rem] border border-white/6 bg-[rgba(11,16,23,0.84)] shadow-[0_12px_28px_rgba(2,6,23,0.12)] xl:sticky xl:top-[74px] xl:flex xl:max-h-[calc(100vh-8.75rem)] xl:flex-col">
         <div className="border-b border-white/[0.045] px-3.5 py-3">
-          <div className="text-[10px] uppercase tracking-[0.24em] text-gray-500">参数侧栏</div>
-          <h3 className="mt-1.5 text-[15px] font-semibold text-white">当前操作控制面板</h3>
+          <div className="text-[10px] uppercase tracking-[0.24em] text-gray-500">{copy.eyebrow}</div>
+          <h3 className="mt-1.5 text-[15px] font-semibold text-white">{copy.title}</h3>
           <p className="mt-1.5 text-[12px] leading-5 text-gray-500">
-            让参数区跟随当前工具模式切换，优先展示此刻最相关的控制项。
+            {copy.description}
           </p>
 
           <div className="mt-2.5 rounded-[1.25rem] border border-white/[0.05] bg-white/[0.02] p-3">
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
-                <div className="text-[10px] uppercase tracking-[0.2em] text-gray-500">当前模式</div>
+                <div className="text-[10px] uppercase tracking-[0.2em] text-gray-500">{copy.modeLabel}</div>
                 <div className="mt-1 text-[14px] font-semibold text-white">{selectedToolLabel}</div>
                 <div className="mt-1 text-[11px] text-primary">{toolProfile.emphasis}</div>
               </div>
@@ -170,12 +170,12 @@ export function SimulationParameterSidebar({
 
             <div className="mt-3 grid grid-cols-2 gap-2">
               <div className="rounded-[1rem] border border-white/[0.045] bg-[rgba(255,255,255,0.02)] px-3 py-2.5">
-                <div className="text-[10px] uppercase tracking-[0.16em] text-gray-500">机器人</div>
+                <div className="text-[10px] uppercase tracking-[0.16em] text-gray-500">{copy.robotLabel}</div>
                 <div className="mt-1 truncate text-[12px] font-medium text-white">{selectedRobot.id}</div>
               </div>
               <div className="rounded-[1rem] border border-white/[0.045] bg-[rgba(255,255,255,0.02)] px-3 py-2.5">
-                <div className="text-[10px] uppercase tracking-[0.16em] text-gray-500">焦点</div>
-                <div className="mt-1 truncate text-[12px] font-medium text-white">{currentSelection?.label ?? '整机参数'}</div>
+                <div className="text-[10px] uppercase tracking-[0.16em] text-gray-500">{copy.focusLabel}</div>
+                <div className="mt-1 truncate text-[12px] font-medium text-white">{currentSelection?.label ?? copy.defaultFocus}</div>
               </div>
             </div>
 
@@ -191,7 +191,7 @@ export function SimulationParameterSidebar({
               key={section.key}
               isOpen={openKeys.includes(section.key)}
               onToggle={() => toggleSection(section.key)}
-              recommendationLabel={recommendedKeys.includes(section.key) && index < 2 ? (index === 0 ? '优先查看' : '联动参数') : null}
+              recommendationLabel={recommendedKeys.includes(section.key) && index < 2 ? (index === 0 ? copy.primaryRecommendation : copy.linkedRecommendation) : null}
               section={section}
             />
           ))}

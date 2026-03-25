@@ -1,18 +1,7 @@
 import { motion } from 'framer-motion'
 import { Card } from '../ui'
 
-const feeds = [
-  { id: 'neck', name: '感知颈部', hud: 'Depth / Heat', tone: 'from-cyan-400/10 via-transparent to-transparent', accent: 'bg-cyan-300/55' },
-  { id: 'top', name: '上帝视角', hud: 'SLAM / Mapping', tone: 'from-emerald-400/10 via-transparent to-transparent', accent: 'bg-emerald-300/55' },
-  { id: 'gait', name: '步态分析', hud: 'Pose / Skeleton', tone: 'from-amber-400/10 via-transparent to-transparent', accent: 'bg-amber-300/55' },
-  { id: 'front', name: '正视', hud: 'FPV / Guide', tone: 'from-primary/10 via-transparent to-transparent', accent: 'bg-primary/55' },
-  { id: 'arm', name: '仰视操作', hud: 'Arm / Grip', tone: 'from-rose-400/10 via-transparent to-transparent', accent: 'bg-rose-300/50' },
-  { id: 'flow', name: '行走进尺', hud: 'Optical Flow', tone: 'from-violet-400/10 via-transparent to-transparent', accent: 'bg-violet-300/50' },
-]
-
-const mobileFeeds = feeds.slice(0, 1)
-
-function FeedTile({ feed, index, isEStopActive }) {
+function FeedTile({ copy, feed, index, isEStopActive }) {
   return (
     <div className="relative aspect-video overflow-hidden rounded-[1.4rem] border border-white/8 bg-[linear-gradient(180deg,#0b1016,#090d13)]">
       <div className={`absolute inset-0 bg-gradient-to-br ${feed.tone}`} />
@@ -41,7 +30,7 @@ function FeedTile({ feed, index, isEStopActive }) {
             }`}
           >
             <span className={`h-1.5 w-1.5 rounded-full ${isEStopActive ? 'bg-status-danger' : 'bg-status-success'}`} />
-            {isEStopActive ? 'PAUSED' : 'LIVE'}
+            {isEStopActive ? copy.pausedBadge : copy.liveBadge}
           </span>
         </div>
 
@@ -67,16 +56,18 @@ function FeedTile({ feed, index, isEStopActive }) {
   )
 }
 
-export function VideoWall({ isEStopActive }) {
+export function VideoWall({ copy, isEStopActive }) {
+  const mobileFeeds = copy.feeds.slice(0, 1)
+
   return (
     <Card className="rounded-[1.9rem] border-white/8 bg-[rgba(13,18,25,0.9)] p-4 shadow-[0_16px_38px_rgba(2,6,23,0.2)]">
       <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <div className="text-[11px] uppercase tracking-[0.24em] text-gray-500">Vision Grid</div>
-          <h2 className="mt-2 text-2xl font-semibold tracking-tight text-white">多路视频监控矩阵</h2>
+          <div className="text-[11px] uppercase tracking-[0.24em] text-gray-500">{copy.eyebrow}</div>
+          <h2 className="mt-2 text-2xl font-semibold tracking-tight text-white">{copy.title}</h2>
         </div>
         <div className="flex items-center gap-2 text-xs text-gray-500">
-          <span className="rounded-full border border-white/8 bg-white/[0.03] px-3 py-1.5">6 路在线</span>
+          <span className="rounded-full border border-white/8 bg-white/[0.03] px-3 py-1.5">{copy.onlineFeeds}</span>
           <span
             className={`rounded-full border px-3 py-1.5 ${
               isEStopActive
@@ -84,20 +75,20 @@ export function VideoWall({ isEStopActive }) {
                 : 'border-status-success/16 bg-status-success/10 text-status-success'
             }`}
           >
-            {isEStopActive ? '流已冻结' : '实时传输中'}
+            {isEStopActive ? copy.frozen : copy.live}
           </span>
         </div>
       </div>
 
       <div className="grid gap-4 sm:hidden">
         {mobileFeeds.map((feed, index) => (
-          <FeedTile key={feed.id} feed={feed} index={index} isEStopActive={isEStopActive} />
+          <FeedTile key={feed.id} copy={copy} feed={feed} index={index} isEStopActive={isEStopActive} />
         ))}
       </div>
 
       <div className="hidden gap-4 sm:grid sm:grid-cols-2 xl:grid-cols-3">
-        {feeds.map((feed, index) => (
-          <FeedTile key={feed.id} feed={feed} index={index} isEStopActive={isEStopActive} />
+        {copy.feeds.map((feed, index) => (
+          <FeedTile key={feed.id} copy={copy} feed={feed} index={index} isEStopActive={isEStopActive} />
         ))}
       </div>
     </Card>

@@ -21,7 +21,7 @@
   body {
     background-color: var(--color-background);
     color: #f3f4f6;
-    font-family: 'Sora', 'PingFang SC', system-ui, sans-serif;
+    font-family: 'Sora', 'Inter', 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', 'Noto Sans SC', 'Microsoft YaHei', 'WenQuanYi Micro Hei', system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
@@ -58,5 +58,14 @@
   .status-dot-danger {
     background-color: var(--color-status-danger);
     animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  .hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
   }
 }

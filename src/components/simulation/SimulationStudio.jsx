@@ -1,15 +1,21 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { RotateCcw } from 'lucide-react'
+import { useI18n } from '../../i18n/context'
 import { useSimulationStore, useTerminalStore, useRobotStore } from '../../store'
-import { aiResponses } from '../../data/mock'
 import { SimulationStatusPanel, SimulationTaskComposer } from './SimulationConsole'
 import { SimulationHeader } from './SimulationHeader'
 import { SimulationParameterSidebar } from './SimulationParameterSidebar'
 import { SimulationToolDock } from './SimulationToolDock'
 import { SimulationViewport } from './SimulationViewport'
-import { buildParameterSections, partConfig, tools, viewOptions } from './simulationContent'
+import {
+  buildSimulationParameterSections,
+  getSimulationContent,
+  getSimulationPartDetails,
+  getSimulationToolProfile,
+} from './simulationI18n'
 
 export function SimulationStudio() {
+  const { locale } = useI18n()
   const {
     selectedTool,
     selectedView,
@@ -33,6 +39,8 @@ export function SimulationStudio() {
     setIsThinking,
     setIsRecording,
   } = useTerminalStore()
+  const content = useMemo(() => getSimulationContent(locale), [locale])
+  const { composer, header, sidebar, statusPanel, telemetry, tools, views } = content
 
   const [zoom, setZoom] = useState(0.84)
   const logRef = useRef(null)
@@ -65,59 +73,63 @@ export function SimulationStudio() {
   }, [messages, isThinking])
 
   const currentSelection = useMemo(
-    () => (selectedPart ? partConfig[selectedPart] : null),
-    [selectedPart],
+    () => getSimulationPartDetails(locale, selectedPart),
+    [locale, selectedPart],
   )
 
   const selectedToolMeta = useMemo(
     () => tools.find((tool) => tool.id === selectedTool) ?? tools[0],
-    [selectedTool],
+    [selectedTool, tools],
   )
   const selectedViewMeta = useMemo(
-    () => viewOptions.find((view) => view.id === selectedView) ?? viewOptions[0],
-    [selectedView],
+    () => views.find((view) => view.id === selectedView) ?? views[0],
+    [selectedView, views],
+  )
+  const selectedToolProfile = useMemo(
+    () => getSimulationToolProfile(locale, selectedTool),
+    [locale, selectedTool],
   )
   const sections = useMemo(
-    () => buildParameterSections(parameters),
-    [parameters],
+    () => buildSimulationParameterSections(parameters, locale),
+    [locale, parameters],
   )
   const postureMetrics = useMemo(() => ([
     {
-      label: '俯仰角',
+      label: telemetry.pitch,
       value: `${(parameters.balance.gyroX * 120).toFixed(1)}°`,
       tone: 'text-sky-300',
     },
     {
-      label: '滚转角',
+      label: telemetry.roll,
       value: `${(parameters.balance.gyroY * 120).toFixed(1)}°`,
       tone: 'text-violet-300',
     },
     {
-      label: '稳定度',
+      label: telemetry.stability,
       value: `${parameters.balance.stability}%`,
       tone: 'text-emerald-300',
     },
     {
-      label: '当前工具',
+      label: telemetry.currentTool,
       value: selectedToolMeta.label,
       tone: 'text-primary',
     },
-  ]), [parameters.balance.gyroX, parameters.balance.gyroY, parameters.balance.stability, selectedToolMeta.label])
+  ]), [parameters.balance.gyroX, parameters.balance.gyroY, parameters.balance.stability, selectedToolMeta.label, telemetry.currentTool, telemetry.pitch, telemetry.roll, telemetry.stability])
 
   const telemetryChips = [
     {
-      label: '链路',
-      value: selectedRobot.signal === 'weak' ? '波动' : '稳定',
+      label: telemetry.link,
+      value: selectedRobot.signal === 'weak' ? telemetry.fluctuating : telemetry.stable,
       tone: 'border-sky-400/18 bg-sky-400/10 text-sky-300',
     },
     {
-      label: '电量',
+      label: telemetry.battery,
       value: `${selectedRobot.battery}%`,
       tone: 'border-emerald-400/18 bg-emerald-400/10 text-emerald-300',
     },
     {
-      label: '工作区',
-      value: currentSelection?.label ?? '整机仿真',
+      label: telemetry.workspace,
+      value: currentSelection?.label ?? telemetry.defaultWorkspace,
       tone: 'border-white/8 bg-white/[0.03] text-gray-300',
     },
   ]
@@ -130,14 +142,19 @@ export function SimulationStudio() {
     setIsThinking(true)
 
     window.setTimeout(() => {
-      const response = aiResponses[Math.floor(Math.random() * aiResponses.length)]
+      const responses = [
+        locale === 'en' ? 'Instruction received. Planning the next route...' : locale === 'fr' ? 'Instruction reçue. Planification du prochain trajet...' : locale === 'ru' ? 'Команда получена. Планирую следующий маршрут...' : 'Anweisung empfangen. Nächste Route wird geplant...',
+        locale === 'en' ? 'Target object detected. Preparing the grasp action.' : locale === 'fr' ? 'Objet cible détecté. Préparation de la prise.' : locale === 'ru' ? 'Целевой объект обнаружен. Подготовка захвата.' : 'Zielobjekt erkannt. Greifaktion wird vorbereitet.',
+        locale === 'en' ? 'Battery level is sufficient. The task can continue.' : locale === 'fr' ? 'Le niveau de batterie est suffisant. La tâche peut continuer.' : locale === 'ru' ? 'Заряда достаточно. Задачу можно продолжать.' : 'Akkustand ausreichend. Aufgabe kann fortgesetzt werden.',
+      ]
+      const response = responses[Math.floor(Math.random() * responses.length)]
       addMessage({ type: 'ai', content: response, model: selectedModel })
       setIsThinking(false)
     }, 1200)
   }
 
   const handleQuickAction = (action) => {
-    addMessage({ type: 'system', content: `已执行：${action}` })
+    addMessage({ type: 'system', content: composer.executedAction(action) })
   }
 
   return (
@@ -149,6 +166,7 @@ export function SimulationStudio() {
       <div className="pointer-events-none absolute right-0 top-[18%] h-[32rem] w-[28rem] bg-[radial-gradient(circle,rgba(249,115,22,0.05),transparent_72%)] blur-3xl" />
 
       <SimulationHeader
+        copy={header}
         selectedRobot={selectedRobot}
         telemetryChips={telemetryChips}
       />
@@ -158,7 +176,7 @@ export function SimulationStudio() {
           id="simulation-grid"
           className="grid w-full gap-3 xl:grid-cols-[64px_minmax(0,1fr)_288px] xl:items-start xl:gap-3 2xl:grid-cols-[68px_minmax(0,1fr)_300px] 2xl:gap-4"
         >
-          <SimulationToolDock selectedTool={selectedTool} setSelectedTool={setSelectedTool} />
+          <SimulationToolDock tools={tools} selectedTool={selectedTool} setSelectedTool={setSelectedTool} />
 
           <div
             id="simulation-main-column"
@@ -167,16 +185,17 @@ export function SimulationStudio() {
             <div className="grid gap-3 xl:grid-cols-[320px_minmax(0,1fr)] xl:grid-rows-[auto_auto] xl:items-start 2xl:grid-cols-[340px_minmax(0,1fr)] 2xl:gap-4">
               <SimulationStatusPanel
                 currentSelection={currentSelection}
+                copy={statusPanel}
                 isRecording={isRecording}
                 isThinking={isThinking}
                 logRef={logRef}
                 messages={messages}
                 postureMetrics={postureMetrics}
                 selectedRobot={selectedRobot}
-                selectedTool={selectedTool}
                 selectedToolLabel={selectedToolMeta.label}
                 selectedViewLabel={selectedViewMeta.label}
                 setIsRecording={setIsRecording}
+                toolProfile={selectedToolProfile}
                 className="xl:row-span-2"
               />
 
@@ -212,6 +231,7 @@ export function SimulationStudio() {
           </div>
 
           <SimulationParameterSidebar
+            copy={sidebar}
             currentSelection={currentSelection}
             sections={sections}
             selectedPart={selectedPart}
@@ -219,6 +239,7 @@ export function SimulationStudio() {
             selectedTool={selectedTool}
             selectedToolLabel={selectedToolMeta.label}
             selectedViewLabel={selectedViewMeta.label}
+            toolProfile={selectedToolProfile}
           />
         </div>
       </div>
@@ -227,7 +248,7 @@ export function SimulationStudio() {
         <button
           type="button"
           className="flex h-12 items-center gap-2 rounded-full border border-red-400/20 bg-[rgba(127,29,29,0.88)] px-4 text-sm font-medium text-white shadow-[0_14px_26px_rgba(239,68,68,0.18)] transition-colors hover:bg-[rgba(153,27,27,0.92)]"
-          onClick={() => addMessage({ type: 'system', content: '已触发紧急停止演示' })}
+          onClick={() => addMessage({ type: 'system', content: composer.estopTriggered })}
         >
           <RotateCcw className="h-4 w-4" />
           E-STOP

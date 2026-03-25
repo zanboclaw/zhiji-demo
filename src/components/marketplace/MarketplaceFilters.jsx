@@ -1,8 +1,10 @@
 import { Search, SlidersHorizontal, Layers3 } from 'lucide-react'
-import { categories } from '../../data/mock'
 import { getCategorySkillCount } from './marketplaceHelpers'
 
 export function MarketplaceFilters({
+  categories,
+  copy,
+  skillsData,
   selectedCategory,
   selectedSort,
   searchQuery,
@@ -17,7 +19,7 @@ export function MarketplaceFilters({
       <aside className="rounded-[1.6rem] border border-white/6 bg-[linear-gradient(180deg,rgba(15,20,28,0.86),rgba(12,17,24,0.72))] p-4 shadow-[0_14px_34px_rgba(2,6,23,0.18)] lg:sticky lg:top-24">
         <div className="mb-4 flex items-center gap-2 text-xs font-medium uppercase tracking-[0.2em] text-gray-500">
           <SlidersHorizontal className="h-3.5 w-3.5 text-primary/80" />
-          分类筛选
+          {copy.title}
         </div>
 
         <div className="space-y-1.5">
@@ -38,7 +40,7 @@ export function MarketplaceFilters({
                   selectedCategory === category.id ? 'bg-primary/10 text-primary/[0.9]' : 'text-gray-500'
                 }`}
               >
-                {getCategorySkillCount(category.id)}
+                {getCategorySkillCount(skillsData, category.id)}
               </span>
             </button>
           ))}
@@ -47,11 +49,10 @@ export function MarketplaceFilters({
         <div className="mt-5 border-t border-white/8 pt-5">
           <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-[0.18em] text-gray-500">
             <Layers3 className="h-3.5 w-3.5 text-primary/80" />
-            平台分发能力
+            {copy.platformTitle}
           </div>
           <div className="mt-3 text-sm leading-6 text-gray-400">
-            点击获取技能后，页面会同步展示部署延迟、环境状态与兼容提示，用于模拟真实
-            AI 平台工作流。
+            {copy.platformDescription}
           </div>
         </div>
       </aside>
@@ -63,7 +64,7 @@ export function MarketplaceFilters({
               <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-500" />
               <input
                 type="text"
-                placeholder="搜索技能、标签、作者或能力..."
+                placeholder={copy.searchPlaceholder}
                 value={searchQuery}
                 onChange={(event) => setSearchQuery(event.target.value)}
                 className="h-[3.25rem] w-full rounded-[1.1rem] border border-white/10 bg-white/[0.035] pl-12 pr-4 text-white placeholder:text-gray-500 focus:border-primary/[0.28] focus:bg-white/[0.05] focus:outline-none"
@@ -89,9 +90,11 @@ export function MarketplaceFilters({
           </div>
 
           <div className="mt-4 flex flex-wrap gap-2 text-xs text-gray-400">
-            <span className="rounded-full border border-white/8 bg-white/[0.03] px-3 py-1.5">统一部署状态</span>
-            <span className="rounded-full border border-white/8 bg-white/[0.03] px-3 py-1.5">兼容设备可见</span>
-            <span className="rounded-full border border-white/8 bg-white/[0.03] px-3 py-1.5">支持仿真验证</span>
+            {copy.chips.map((chip) => (
+              <span key={chip} className="rounded-full border border-white/8 bg-white/[0.03] px-3 py-1.5">
+                {chip}
+              </span>
+            ))}
           </div>
         </div>
 

@@ -1,20 +1,23 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
-  Bot,
   History,
   Mic,
   Send,
-  ShieldCheck,
   Sparkles,
   Target,
   Terminal,
 } from 'lucide-react'
-import { buildConsoleTemplates, modelOptions, toolModeProfiles } from './simulationContent'
+import { useI18n } from '../../i18n/context'
+import {
+  buildSimulationConsoleTemplates,
+  getSimulationContent,
+  resolveSimulationRuntimeMessage,
+} from './simulationI18n'
 
-function getStatusMeta(isThinking, isRecording) {
+function getStatusMeta(copy, isThinking, isRecording) {
   if (isThinking) {
     return {
-      label: '执行中',
+      label: copy.statuses.thinking,
       tone: 'border-amber-400/20 bg-amber-400/10 text-amber-200',
       pulse: 'bg-amber-300',
     }
@@ -22,14 +25,14 @@ function getStatusMeta(isThinking, isRecording) {
 
   if (isRecording) {
     return {
-      label: '录制中',
+      label: copy.statuses.recording,
       tone: 'border-sky-400/20 bg-sky-400/10 text-sky-200',
       pulse: 'bg-sky-300',
     }
   }
 
   return {
-    label: '待命',
+    label: copy.statuses.idle,
     tone: 'border-emerald-400/20 bg-emerald-400/10 text-emerald-200',
     pulse: 'bg-emerald-300',
   }
@@ -99,6 +102,7 @@ function PanelShell({ title, subtitle, icon: Icon, meta, className = '', childre
 
 export function SimulationStatusPanel({
   className = '',
+  copy,
   currentSelection,
   isRecording,
   isThinking,
@@ -106,18 +110,18 @@ export function SimulationStatusPanel({
   messages,
   postureMetrics,
   selectedRobot,
-  selectedTool,
   selectedToolLabel,
   selectedViewLabel,
   setIsRecording,
+  toolProfile,
 }) {
-  const statusMeta = getStatusMeta(isThinking, isRecording)
-  const toolProfile = toolModeProfiles[selectedTool] ?? toolModeProfiles.select
+  const { locale } = useI18n()
+  const statusMeta = getStatusMeta(copy, isThinking, isRecording)
   const contextItems = [
-    { label: '机器人', value: selectedRobot.id },
-    { label: '视图', value: selectedViewLabel },
-    { label: '工具', value: selectedToolLabel },
-    { label: '焦点', value: currentSelection?.label ?? '整机仿真' },
+    { label: copy.contextLabels.robot, value: selectedRobot.id },
+    { label: copy.contextLabels.view, value: selectedViewLabel },
+    { label: copy.contextLabels.tool, value: selectedToolLabel },
+    { label: copy.contextLabels.focus, value: currentSelection?.label ?? copy.defaultFocus },
   ]
 
   return (
@@ -125,7 +129,7 @@ export function SimulationStatusPanel({
       <PanelShell
         icon={Terminal}
         subtitle="Execution State"
-        title="状态与任务上下文"
+        title={copy.stateTitle}
         meta={(
           <div className="flex flex-wrap items-center gap-2">
             <span className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[11px] font-medium ${statusMeta.tone}`}>
@@ -142,7 +146,7 @@ export function SimulationStatusPanel({
               }`}
             >
               <Mic className="h-3.5 w-3.5" />
-              {isRecording ? '停止录制' : '录制指令'}
+              {isRecording ? copy.recordStop : copy.recordStart}
             </button>
           </div>
         )}
@@ -159,7 +163,7 @@ export function SimulationStatusPanel({
         <div className="mt-3 rounded-[1.25rem] border border-white/[0.05] bg-white/[0.02] p-3">
           <div className="flex items-center justify-between gap-3">
             <div>
-              <div className="text-[10px] uppercase tracking-[0.18em] text-gray-500">当前模式</div>
+              <div className="text-[10px] uppercase tracking-[0.18em] text-gray-500">{copy.modeLabel}</div>
               <div className="mt-1 text-sm font-semibold text-white">{selectedToolLabel}</div>
             </div>
             <span className="rounded-full border border-primary/14 bg-primary/10 px-2.5 py-1 text-[10px] uppercase tracking-[0.14em] text-primary">
@@ -176,14 +180,14 @@ export function SimulationStatusPanel({
       <PanelShell
         icon={Target}
         subtitle="Focus Snapshot"
-        title="聚焦当前部件"
+        title={copy.focusTitle}
       >
         <div className="rounded-[1.25rem] border border-white/[0.05] bg-white/[0.02] p-3">
           <div className="flex items-start justify-between gap-3">
             <div>
               <div className="text-[10px] uppercase tracking-[0.18em] text-gray-500">Current Focus</div>
-              <div className="mt-1 text-sm font-semibold text-white">{currentSelection?.label ?? '整机姿态与行为路径'}</div>
-              <div className="mt-1 text-[12px] text-primary">{currentSelection?.badge ?? '全局观察'}</div>
+              <div className="mt-1 text-sm font-semibold text-white">{currentSelection?.label ?? copy.defaultFocus}</div>
+              <div className="mt-1 text-[12px] text-primary">{currentSelection?.badge ?? copy.defaultFocusBadge}</div>
             </div>
             <span className="rounded-full border border-white/8 bg-white/[0.03] px-2.5 py-1 text-[10px] uppercase tracking-[0.14em] text-gray-400">
               {selectedViewLabel}
@@ -204,9 +208,9 @@ export function SimulationStatusPanel({
       <PanelShell
         icon={History}
         subtitle="Runtime Log"
-        title="运行日志"
+        title={copy.logTitle}
         className="min-h-0 flex-1"
-        meta={<span className="text-[11px] text-gray-500">{messages.length} 条记录</span>}
+        meta={<span className="text-[11px] text-gray-500">{copy.recordCount(messages.length)}</span>}
       >
         <div
           ref={logRef}
@@ -230,7 +234,7 @@ export function SimulationStatusPanel({
                     ) : null}
                     <span className="text-[10px] text-gray-600">{message.time}</span>
                   </div>
-                  <div className="mt-2 text-[13px] leading-6 text-slate-200">{message.content}</div>
+                  <div className="mt-2 text-[13px] leading-6 text-slate-200">{resolveSimulationRuntimeMessage(locale, message)}</div>
                 </div>
               )
             })
@@ -240,9 +244,9 @@ export function SimulationStatusPanel({
                 <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-2xl border border-white/8 bg-white/[0.03] text-primary">
                   <Sparkles className="h-4.5 w-4.5" />
                 </div>
-                <div className="mt-3 text-[13px] font-medium text-slate-100">等待任务指令</div>
+                <div className="mt-3 text-[13px] font-medium text-slate-100">{copy.waitingTitle}</div>
                 <p className="mt-1 text-[12px] leading-5 text-gray-500">
-                  左侧会持续记录状态变化、模板载入和执行结果。
+                  {copy.waitingDescription}
                 </p>
               </div>
             </div>
@@ -268,28 +272,32 @@ export function SimulationTaskComposer({
   onSendMessage,
   setSelectedPart,
 }) {
+  const { locale } = useI18n()
   const [activeTemplateId, setActiveTemplateId] = useState(null)
+  const content = useMemo(() => getSimulationContent(locale), [locale])
+  const { composer, models } = content
 
   const templates = useMemo(
-    () => buildConsoleTemplates({
+    () => buildSimulationConsoleTemplates({
       selectedTool,
       selectedPart,
       currentSelection,
+      locale,
       robotId: selectedRobot.id,
     }),
-    [currentSelection, selectedPart, selectedRobot.id, selectedTool],
+    [currentSelection, locale, selectedPart, selectedRobot.id, selectedTool],
   )
   const activeTemplate = useMemo(
     () => templates.find((template) => template.id === activeTemplateId) ?? templates[0] ?? null,
     [activeTemplateId, templates],
   )
   const selectedModelMeta = useMemo(
-    () => modelOptions.find((option) => option.id === selectedModel) ?? {
+    () => models.find((option) => option.id === selectedModel) ?? {
       id: selectedModel ?? 'ChatGPT',
       label: selectedModel ?? 'ChatGPT',
       provider: 'Custom',
     },
-    [selectedModel],
+    [models, selectedModel],
   )
 
   useEffect(() => {
@@ -306,15 +314,20 @@ export function SimulationTaskComposer({
       setSelectedPart?.(template.targetPart)
     }
 
-    onQuickAction?.(`已载入任务模板：${template.label}`)
+    onQuickAction?.(composer.templateLoaded(template.label))
   }
 
   const handleInsertContext = () => {
-    const contextSnippet = `上下文：机器人 ${selectedRobot.id} | 工具 ${selectedToolLabel} | 视图 ${selectedViewLabel} | 焦点 ${currentSelection?.label ?? '整机仿真'}`
+    const contextSnippet = composer.insertedContext(
+      selectedRobot.id,
+      selectedToolLabel,
+      selectedViewLabel,
+      currentSelection?.label ?? composer.defaultFocus,
+    )
     const nextValue = inputValue?.trim() ? `${inputValue}\n${contextSnippet}` : contextSnippet
 
     setInputValue(nextValue)
-    onQuickAction?.('已插入当前上下文到任务流')
+    onQuickAction?.(composer.contextInserted)
   }
 
   const handleSubmit = () => {
@@ -333,14 +346,14 @@ export function SimulationTaskComposer({
     <PanelShell
       icon={Terminal}
       subtitle="Task Composer"
-      title="任务与指令编排"
+      title={composer.title}
       meta={(
         <div className="flex items-center gap-2 text-[11px] text-gray-500">
           <span className="rounded-full border border-white/8 bg-white/[0.03] px-3 py-1.5">
-            模板 {templates.length} 条
+            {composer.templateChip(templates.length)}
           </span>
           <span className="rounded-full border border-primary/14 bg-primary/10 px-3 py-1.5 text-primary">
-            Enter 发送
+            {composer.enterChip}
           </span>
         </div>
       )}
@@ -348,7 +361,7 @@ export function SimulationTaskComposer({
       <div className="rounded-[1.35rem] border border-white/[0.045] bg-[rgba(10,14,20,0.75)] p-3">
         <div className="grid gap-3 lg:grid-cols-3">
           <label className="block">
-            <div className="mb-2 text-[11px] uppercase tracking-[0.16em] text-gray-500">任务模板</div>
+            <div className="mb-2 text-[11px] uppercase tracking-[0.16em] text-gray-500">{composer.templateLabel}</div>
             <div className="relative">
               <select
                 value={activeTemplate?.id ?? ''}
@@ -369,14 +382,14 @@ export function SimulationTaskComposer({
           </label>
 
           <label className="block">
-            <div className="mb-2 text-[11px] uppercase tracking-[0.16em] text-gray-500">模型选择</div>
+            <div className="mb-2 text-[11px] uppercase tracking-[0.16em] text-gray-500">{composer.modelLabel}</div>
             <div className="relative">
               <select
                 value={selectedModelMeta.id}
                 onChange={(event) => setSelectedModel(event.target.value)}
                 className="w-full appearance-none rounded-[1rem] border border-white/[0.08] bg-white/[0.03] px-3 py-3 pr-10 text-[13px] text-white outline-none transition-colors focus:border-primary/35"
               >
-                {modelOptions.map((option) => (
+                {models.map((option) => (
                   <option key={option.id} value={option.id} className="bg-slate-950 text-white">
                     {option.label}
                   </option>
@@ -387,12 +400,12 @@ export function SimulationTaskComposer({
           </label>
 
           <div className="rounded-[1rem] border border-white/[0.08] bg-white/[0.03] px-3 py-3">
-            <div className="text-[11px] uppercase tracking-[0.16em] text-gray-500">当前聚焦</div>
+            <div className="text-[11px] uppercase tracking-[0.16em] text-gray-500">{composer.focusLabel}</div>
             <div className="mt-2 flex items-center justify-between gap-3">
               <div>
-                <div className="text-[13px] font-medium text-white">{currentSelection?.label ?? '整机仿真'}</div>
+                <div className="text-[13px] font-medium text-white">{currentSelection?.label ?? composer.defaultFocus}</div>
                 <div className="mt-1 text-[11px] text-gray-500">
-                  {activeTemplate?.description ?? '根据当前场景自动补齐任务提示'}
+                  {activeTemplate?.description ?? composer.defaultDescription}
                 </div>
               </div>
               <span className="rounded-full border border-primary/14 bg-primary/10 px-2.5 py-1 text-[10px] uppercase tracking-[0.14em] text-primary">
@@ -405,9 +418,9 @@ export function SimulationTaskComposer({
         <div className="mt-4 rounded-[1rem] border border-white/[0.05] bg-white/[0.02] px-3 py-3">
           <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
             <div>
-              <div className="text-[12px] text-gray-400">指令编排</div>
+              <div className="text-[12px] text-gray-400">{composer.orchestrationLabel}</div>
               <div className="mt-1 text-[11px] text-gray-500">
-                模板 · {activeTemplate?.label ?? '自定义输入'} | 模型 · {selectedModelMeta.label}
+                {composer.templateLabel} · {activeTemplate?.label ?? composer.customInput} | {composer.modelLabel} · {selectedModelMeta.label}
               </div>
             </div>
             <div className="flex items-center gap-2 text-[11px] text-gray-500">
@@ -421,7 +434,7 @@ export function SimulationTaskComposer({
             value={inputValue ?? ''}
             onChange={(event) => setInputValue(event.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder={activeTemplate?.prompt ?? '输入任务命令，例如：校准 姿态 --robot Spot-0729'}
+            placeholder={activeTemplate?.prompt ?? composer.placeholder}
             className="min-h-[240px] w-full resize-none bg-transparent text-[13px] leading-6 text-slate-100 outline-none placeholder:text-gray-600 xl:min-h-[280px]"
           />
         </div>
@@ -433,7 +446,7 @@ export function SimulationTaskComposer({
             className="inline-flex items-center gap-2 rounded-full border border-white/8 bg-white/[0.02] px-4 py-2 text-[12px] font-medium text-gray-300 transition-colors hover:border-white/12 hover:bg-white/[0.05]"
           >
             <Sparkles className="h-3.5 w-3.5" />
-            插入上下文
+            {composer.contextButton}
           </button>
           <button
             type="button"
@@ -441,7 +454,7 @@ export function SimulationTaskComposer({
             className="inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary px-4 py-2 text-[12px] font-medium text-white shadow-[0_10px_20px_rgba(249,115,22,0.16)] transition-colors hover:bg-primary/90"
           >
             <Send className="h-3.5 w-3.5" />
-            发送执行
+            {composer.sendButton}
           </button>
         </div>
       </div>

@@ -1,5 +1,4 @@
 import { create } from 'zustand'
-import { mockLogs } from '../data/mock'
 
 // 机器人状态
 export const useRobotStore = create((set) => ({
@@ -79,9 +78,9 @@ export const useSimulationStore = create((set) => ({
 // 终端状态
 export const useTerminalStore = create((set) => ({
   messages: [
-    { id: 1, type: 'system', content: '系统初始化完成', time: '10:00:00' },
-    { id: 2, type: 'info', content: '已连接 Spot-0729', time: '10:00:01' },
-    { id: 3, type: 'success', content: '状态监控已启动', time: '10:00:02' },
+    { id: 1, type: 'system', contentKey: 'simulationSystemInit', time: '10:00:00' },
+    { id: 2, type: 'info', contentKey: 'simulationRobotConnected', vars: { robotId: 'Spot-0729' }, time: '10:00:01' },
+    { id: 3, type: 'success', contentKey: 'simulationMonitoringStarted', time: '10:00:02' },
   ],
   inputValue: '',
   selectedModel: 'ChatGPT',
@@ -93,7 +92,7 @@ export const useTerminalStore = create((set) => ({
       {
         ...message,
         id: Date.now(),
-        time: new Date().toLocaleTimeString('zh-CN'),
+        time: new Date().toLocaleTimeString(),
       },
     ],
   })),
@@ -128,14 +127,21 @@ export const useDashboardStore = create((set) => ({
   selectedRobotId: 'Spot-0729',
   isEStopActive: false,
   isRemoteControl: false,
-  logs: mockLogs,
+  logs: [
+    { time: '10:00:00', level: 'info', messageKey: 'dashboardSystemInit' },
+    { time: '10:00:01', level: 'success', messageKey: 'dashboardRobotConnected', vars: { robotId: 'Spot-0729' } },
+    { time: '10:00:02', level: 'info', messageKey: 'dashboardMonitoringStarted' },
+    { time: '10:00:05', level: 'info', messageKey: 'dashboardSensorsCalibrated' },
+    { time: '10:00:10', level: 'info', messageKey: 'dashboardNavigationReady' },
+    { time: '10:00:15', level: 'success', messageKey: 'dashboardSkillLoaded', vars: { skillName: 'Autonomous Navigation Pro' } },
+  ],
   setSelectedRobotId: (id) => set({ selectedRobotId: id }),
   setIsEStopActive: (value) => set({ isEStopActive: value }),
   setIsRemoteControl: (value) => set({ isRemoteControl: value }),
   addLog: (log) => set((state) => ({
     logs: [
       ...state.logs,
-      { ...log, time: new Date().toLocaleTimeString('zh-CN') },
+      { ...log, time: new Date().toLocaleTimeString() },
     ].slice(-80),
   })),
   prependCriticalLogs: (entries) => set((state) => ({

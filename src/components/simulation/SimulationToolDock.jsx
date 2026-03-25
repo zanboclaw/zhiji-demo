@@ -1,6 +1,4 @@
-import { tools } from './simulationContent'
-
-export function SimulationToolDock({ selectedTool, setSelectedTool }) {
+export function SimulationToolDock({ tools, selectedTool, setSelectedTool }) {
   return (
     <div
       id="simulation-tool-dock"

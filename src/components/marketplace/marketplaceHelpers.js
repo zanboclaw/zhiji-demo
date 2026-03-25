@@ -1,12 +1,10 @@
-import { skillsData } from '../../data/mock'
-
-export function getCategorySkillCount(categoryId) {
+export function getCategorySkillCount(skillsData, categoryId) {
   return categoryId === 'all'
     ? skillsData.length
     : skillsData.filter((skill) => skill.category === categoryId).length
 }
 
-export function filterAndSortSkills({ selectedCategory, searchQuery, selectedSort }) {
+export function filterAndSortSkills({ skillsData, selectedCategory, searchQuery, selectedSort }) {
   const categoryFiltered = skillsData.filter((skill) => {
     const matchesCategory = selectedCategory === 'all' || skill.category === selectedCategory
     const query = searchQuery.trim().toLowerCase()

@@ -1,5 +1,6 @@
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
+import { useI18n } from '../../i18n/context'
 import { useDashboardStore, useRobotStore } from '../../store'
 import { VideoWall } from './VideoWall'
 import { TelemetryFallback } from './DashboardCards'
@@ -7,13 +8,14 @@ import { DashboardOverview } from './DashboardOverview'
 import { AlertsPanel, LogsPanel } from './DashboardStatusPanels'
 import { DashboardControlBar } from './DashboardControlBar'
 import { appendTelemetryPoint, generateTelemetry } from './dashboardUtils'
-import { robots } from './dashboardData'
+import { getDashboardCopy, resolveDashboardRuntimeMessage } from './dashboardI18n'
 
 const TelemetryPanel = lazy(() =>
   import('./TelemetryPanel').then((module) => ({ default: module.TelemetryPanel })),
 )
 
 export function Dashboard() {
+  const { locale } = useI18n()
   const {
     selectedRobotId,
     isEStopActive,
@@ -29,13 +31,15 @@ export function Dashboard() {
   const [temperatureSeries, setTemperatureSeries] = useState(() => generateTelemetry(1, 44, 4))
   const [imuSeries, setImuSeries] = useState(() => generateTelemetry(2, 8, 2))
   const logRef = useRef(null)
+  const content = useMemo(() => getDashboardCopy(locale), [locale])
+  const robots = content.robots
 
   const onlineCount = robots.filter((robot) => robot.status === 'online').length
   const warningCount = robots.filter((robot) => robot.status === 'warning').length
   const offlineCount = robots.filter((robot) => robot.status === 'offline').length
   const selectedRobotMeta = useMemo(
     () => robots.find((robot) => robot.id === selectedRobotId) ?? robots[0],
-    [selectedRobotId],
+    [robots, selectedRobotId],
   )
 
   useEffect(() => {
@@ -51,8 +55,17 @@ export function Dashboard() {
   }, [selectedRobotMeta, setSelectedRobot])
 
   const alertItems = useMemo(
-    () => logs.filter((log) => log.level === 'danger' || log.level === 'warning').slice(-4).reverse(),
-    [logs],
+    () => logs
+      .filter((log) => log.level === 'danger' || log.level === 'warning')
+      .slice(-4)
+      .reverse()
+      .map((log) => ({ ...log, message: resolveDashboardRuntimeMessage(locale, log) })),
+    [locale, logs],
+  )
+
+  const displayLogs = useMemo(
+    () => logs.map((log) => ({ ...log, message: resolveDashboardRuntimeMessage(locale, log) })),
+    [locale, logs],
   )
 
   useEffect(() => {
@@ -68,7 +81,7 @@ export function Dashboard() {
       setBattery(battery)
       addLog({
         level: Math.random() > 0.78 ? 'warning' : 'info',
-        message: Math.random() > 0.6 ? '关节温度采样已刷新' : 'SLAM 点云帧同步完成',
+        messageKey: Math.random() > 0.6 ? 'dashboardTempRefreshed' : 'dashboardSlamSynced',
       })
     }, 2000)
 
@@ -86,7 +99,7 @@ export function Dashboard() {
     setSelectedRobotId(robot.id)
     setRobotStatus(robot.status === 'warning' ? 'warning' : robot.status === 'offline' ? 'danger' : 'normal')
     setBattery(robot.battery)
-    addLog({ level: 'success', message: `已切换监控对象至 ${robot.id}` })
+    addLog({ level: 'success', messageKey: 'dashboardRobotSwitched', vars: { robotId: robot.id } })
   }
 
   const handleEStop = () => {
@@ -95,13 +108,13 @@ export function Dashboard() {
 
     if (nextValue) {
       prependCriticalLogs([
-        { time: new Date().toLocaleTimeString('zh-CN'), level: 'danger', message: '[CRITICAL] EMERGENCY HALT TRIGGERED' },
-        { time: new Date().toLocaleTimeString('zh-CN'), level: 'danger', message: '[CRITICAL] ALL VIDEO FEEDS PAUSED' },
-        { time: new Date().toLocaleTimeString('zh-CN'), level: 'danger', message: '[CRITICAL] WAITING FOR HUMAN OVERRIDE' },
+        { time: new Date().toLocaleTimeString(), level: 'danger', messageKey: 'dashboardCriticalHalt' },
+        { time: new Date().toLocaleTimeString(), level: 'danger', messageKey: 'dashboardCriticalPaused' },
+        { time: new Date().toLocaleTimeString(), level: 'danger', messageKey: 'dashboardCriticalWaiting' },
       ])
-      addLog({ level: 'danger', message: '紧急停止已激活，所有遥测流进入冻结态' })
+      addLog({ level: 'danger', messageKey: 'dashboardEStopActivated' })
     } else {
-      addLog({ level: 'success', message: '紧急停止已解除，遥测恢复' })
+      addLog({ level: 'success', messageKey: 'dashboardEStopReleased' })
     }
   }
 
@@ -121,6 +134,8 @@ export function Dashboard() {
 
       <div className="mx-auto max-w-[1500px] space-y-5">
         <DashboardOverview
+          copy={content.overview}
+          locale={locale}
           onlineCount={onlineCount}
           warningCount={warningCount}
           offlineCount={offlineCount}
@@ -131,11 +146,12 @@ export function Dashboard() {
         />
 
         <div className="grid gap-6">
-          <VideoWall isEStopActive={isEStopActive} />
+          <VideoWall copy={content.videoWall} isEStopActive={isEStopActive} />
 
           <div className="grid gap-6 xl:grid-cols-[minmax(0,1.24fr)_minmax(340px,0.78fr)]">
-            <Suspense fallback={<TelemetryFallback />}>
+            <Suspense fallback={<TelemetryFallback title={content.telemetry.fallbackTitle} />}>
               <TelemetryPanel
+                copy={content.telemetry}
                 temperatureSeries={temperatureSeries}
                 imuSeries={imuSeries}
                 isEStopActive={isEStopActive}
@@ -143,10 +159,11 @@ export function Dashboard() {
             </Suspense>
 
             <div className="grid gap-6 xl:grid-rows-[minmax(0,0.96fr)_minmax(0,0.82fr)]">
-              <AlertsPanel alertItems={alertItems} className="xl:min-h-[20rem]" />
+              <AlertsPanel alertItems={alertItems} copy={content.alerts} className="xl:min-h-[20rem]" />
               <LogsPanel
+                copy={content.logs}
                 logRef={logRef}
-                logs={logs}
+                logs={displayLogs}
                 isEStopActive={isEStopActive}
                 className="xl:min-h-[18rem]"
               />
@@ -155,8 +172,10 @@ export function Dashboard() {
         </div>
 
         <DashboardControlBar
+          copy={content.controlBar}
           isEStopActive={isEStopActive}
           isRemoteControl={isRemoteControl}
+          locale={locale}
           selectedRobot={selectedRobot}
           onToggleRemoteControl={() => setIsRemoteControl(!isRemoteControl)}
           onToggleEStop={handleEStop}
