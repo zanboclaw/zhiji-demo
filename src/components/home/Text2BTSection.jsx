@@ -24,6 +24,13 @@ export function Text2BTSection() {
     treeTemplates,
   } = content
   const scenarioLabel = locale === 'fr' ? 'Scénario' : locale === 'ru' ? 'Сценарий' : locale === 'de' ? 'Szenario' : 'Scenario'
+  const readyLabel = locale === 'fr' ? 'Prêt' : locale === 'ru' ? 'Готово' : locale === 'de' ? 'Bereit' : locale === 'zh' ? '可生成' : 'Ready'
+  const footerStatusLabel = locale === 'fr' ? 'Statut' : locale === 'ru' ? 'Статус' : locale === 'de' ? 'Status' : locale === 'zh' ? '当前状态' : 'Status'
+  const intentCardLabel = locale === 'fr' ? 'Intention' : locale === 'ru' ? 'Цель' : locale === 'de' ? 'Ziel' : locale === 'zh' ? '任务目标' : 'Intent'
+  const actionCardLabel = locale === 'fr' ? 'Actions' : locale === 'ru' ? 'Действия' : locale === 'de' ? 'Aktionen' : locale === 'zh' ? '动作组合' : 'Action Set'
+  const outputCardLabel = locale === 'fr' ? 'Sortie' : locale === 'ru' ? 'Выход' : locale === 'de' ? 'Ausgabe' : locale === 'zh' ? '输出结果' : 'Output'
+  const movedPanelLabel = locale === 'fr' ? 'Panneaux déplacés sous l’arbre' : locale === 'ru' ? 'Панели перенесены под дерево' : locale === 'de' ? 'Panels unter den Baum verschoben' : locale === 'zh' ? '已下移到树下方' : 'Moved below tree'
+  const reserveAreaLabel = locale === 'fr' ? 'Zone réservée pour logs, historique de nœud et télémétrie' : locale === 'ru' ? 'Резервная зона для логов, истории узлов и телеметрии' : locale === 'de' ? 'Reservebereich für Logs, Knotenhistorie und Telemetrie' : locale === 'zh' ? '预留区域：后续可放运行日志、节点历史、遥测快照' : 'Reserved area for logs, node history, and telemetry snapshots'
   const generatedStatus = (title) => locale === 'fr'
     ? `L’IA a généré la structure ${title}`
     : locale === 'ru'
@@ -38,7 +45,6 @@ export function Text2BTSection() {
   const [treeZoom, setTreeZoom] = useState(1)
   const [collapsedNodeIds, setCollapsedNodeIds] = useState(new Set())
   const [draftPrompt, setDraftPrompt] = useState(defaultPrompts[AUTO_SCENARIO_ID])
-  const [submittedPrompt, setSubmittedPrompt] = useState('')
   const [assistantMessage, setAssistantMessage] = useState('')
   const [generationPhase, setGenerationPhase] = useState('idle')
   const [generationStepIndex, setGenerationStepIndex] = useState(-1)
@@ -61,6 +67,20 @@ export function Text2BTSection() {
   }, [generationPhase, generationStepIndex, orchestrationSteps])
   const showTreeVisualization = generationPhase === 'complete'
   const showGeneratedMeta = generationPhase === 'complete'
+  const selectedScenario = useMemo(
+    () => scenarioTemplates.find((item) => item.id === selectedScenarioId) ?? scenarioTemplates[0],
+    [scenarioTemplates, selectedScenarioId],
+  )
+  const summaryActionValue = useMemo(() => (
+    activeTree.nodes?.[0]?.children?.slice(0, 3).map((node) => node.label).join(' / ') ?? '--'
+  ), [activeTree.nodes])
+  const processSummary = useMemo(() => {
+    if (generationPhase === 'planning') return orchestrationSteps[generationStepIndex] ?? text2btSection.statusIdle
+    if (generationPhase === 'rendering') return text2btSection.statusRendering
+    if (generationPhase === 'complete') return text2btSection.generatedTreeLabel
+    if (generationPhase === 'chatting') return text2btSection.statusChatting
+    return text2btSection.processPlaceholder
+  }, [generationPhase, generationStepIndex, orchestrationSteps, text2btSection])
 
   const highlightedIds = useMemo(() => {
     if (!selectedNode || !showGeneratedMeta) return new Set()
@@ -95,7 +115,6 @@ export function Text2BTSection() {
 
     clearAnimationTimers()
     setSelectedScenarioId(scenarioId)
-    setSubmittedPrompt(trimmedPrompt)
     setAssistantMessage('')
     setGenerationPhase('chatting')
     setGenerationStepIndex(-1)
@@ -133,14 +152,6 @@ export function Text2BTSection() {
     timerRefs.current.push(completeTimer)
   }, [assistantResponses, clearAnimationTimers, orchestrationSteps, treeTemplates])
 
-  const generationStatus = useMemo(() => {
-    if (generationPhase === 'chatting') return text2btSection.statusChatting
-    if (generationPhase === 'planning') return orchestrationSteps[generationStepIndex] ?? text2btSection.statusIdle
-    if (generationPhase === 'rendering') return text2btSection.statusRendering
-    if (generationPhase === 'complete') return `${scenarioTemplates.find((item) => item.id === selectedScenarioId)?.title ?? 'Scenario'} · ${text2btSection.generatedTreeLabel}`
-    return text2btSection.statusIdle
-  }, [generationPhase, generationStepIndex, orchestrationSteps, scenarioTemplates, selectedScenarioId, text2btSection])
-
   return (
     <section
       data-testid="text2bt-section"
@@ -158,155 +169,171 @@ export function Text2BTSection() {
         </div>
 
         <Card className="overflow-hidden rounded-[2rem] border-white/10 bg-black/40 p-0 shadow-[0_24px_70px_rgba(0,0,0,0.45)]">
-          <div className="grid lg:grid-cols-[430px_minmax(0,1fr)]">
-            <div className="border-b border-white/10 p-6 lg:border-b-0 lg:border-r">
-              <div className="mb-5 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary/15 text-primary">
-                    <Search className="h-5 w-5" />
+          <div className="grid lg:grid-cols-[minmax(0,490px)_minmax(0,1fr)] xl:grid-cols-[minmax(0,520px)_minmax(0,1fr)]">
+            <div className="border-b border-white/10 p-5 lg:border-b-0 lg:border-r lg:p-6">
+              <div className="rounded-[1.8rem] border border-white/8 bg-[linear-gradient(180deg,rgba(9,13,21,0.96),rgba(5,8,14,0.95))] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] sm:p-5">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex min-w-0 items-start gap-3">
+                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-white/8 bg-[linear-gradient(135deg,rgba(249,115,22,0.16),rgba(59,130,246,0.12))] text-primary shadow-[0_12px_30px_rgba(15,23,42,0.22)]">
+                      <Search className="h-5 w-5" />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="text-xl font-semibold leading-tight text-white">{text2btSection.title}</div>
+                      <div className="mt-1 text-sm leading-6 text-gray-500">{text2btSection.description}</div>
+                    </div>
                   </div>
-                  <div>
-                    <div className="text-lg font-semibold text-white">{text2btSection.scenarioTitle}</div>
-                    <div className="text-sm text-gray-500">{text2btSection.scenarioDescription}</div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                {scenarioTemplates.map((template) => {
-                  const Icon = template.icon
-
-                  return (
-                    <button
-                      key={template.title}
-                      type="button"
-                      className={`w-full rounded-[1.5rem] border p-4 text-left transition-all duration-300 ${
-                        selectedScenarioId === template.id
-                          ? 'border-primary/35 bg-primary/10 shadow-[0_18px_36px_rgba(59,130,246,0.12)]'
-                          : 'border-white/10 bg-white/[0.03] hover:border-primary/30 hover:bg-white/[0.05]'
-                      }`}
-                      onClick={() => {
-                        setSelectedScenarioId(template.id)
-                        setDraftPrompt(defaultPrompts[template.id] ?? template.title)
-                      }}
-                    >
-                      <div className="flex items-start gap-4">
-                        <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${template.tone}`}>
-                          <Icon className="h-5 w-5" />
-                        </div>
-                        <div>
-                          <div className="text-lg font-medium text-white">{template.title}</div>
-                          <div className="mt-1 text-sm leading-6 text-gray-500">{template.desc}</div>
-                        </div>
-                      </div>
-                    </button>
-                  )
-                })}
-              </div>
-
-              <div className="mt-6 rounded-[1.5rem] border border-white/10 bg-black/30 p-4">
-                <div className="mb-3 flex items-center justify-between gap-3">
-                  <div>
-                    <div className="text-sm font-semibold text-white">{text2btSection.taskInputTitle}</div>
-                    <div className="text-xs text-gray-500">{text2btSection.taskInputDescription}</div>
-                  </div>
-                  <div className="inline-flex items-center gap-2 rounded-full border border-primary/18 bg-primary/10 px-3 py-1.5 text-[11px] font-medium text-primary">
+                  <div className="inline-flex shrink-0 items-center gap-2 rounded-full border border-emerald-400/18 bg-emerald-400/10 px-3 py-2 text-[11px] font-semibold text-emerald-300">
                     <Sparkles className="h-3.5 w-3.5" />
-                    Ready
+                    {readyLabel}
                   </div>
                 </div>
-                <div
-                  data-testid="text2bt-prompt"
-                  className="min-h-[220px] rounded-[1.2rem] border border-white/8 bg-[linear-gradient(180deg,rgba(15,23,42,0.62),rgba(2,6,23,0.36))] px-4 py-4"
-                >
-                  <div className="text-[11px] uppercase tracking-[0.22em] text-primary/60">{text2btSection.conversationLabel}</div>
-                  <div className="mt-4 space-y-3">
-                    <div className="flex justify-end">
-                      <div className="max-w-[88%] rounded-[1.1rem] rounded-br-md border border-primary/20 bg-primary/12 px-4 py-3 text-sm leading-7 text-white shadow-[0_14px_32px_rgba(59,130,246,0.12)]">
-                        {submittedPrompt || text2btSection.conversationPlaceholder}
+
+                <div className="mt-4 space-y-4">
+                  <div className="rounded-[1.5rem] border border-white/6 bg-white/[0.02] p-4">
+                    <div className="mb-3 flex items-center justify-between gap-3">
+                      <div className="text-[11px] uppercase tracking-[0.24em] text-gray-500">
+                        {text2btSection.taskInputTitle}
+                      </div>
+                      <div className="rounded-full border border-primary/18 bg-primary/10 px-3 py-1 text-[11px] font-medium text-primary">
+                        {scenarioLabel}: {selectedScenario.title}
                       </div>
                     </div>
-                    <div className="flex justify-start">
-                      <div className="max-w-[92%] rounded-[1.1rem] rounded-bl-md border border-white/8 bg-black/24 px-4 py-3 text-sm leading-7 text-gray-300">
-                        {assistantMessage || (
-                          <span className="text-gray-500">{text2btSection.assistantPlaceholder}</span>
-                        )}
-                        {generationPhase === 'chatting' && assistantMessage ? <TypingDots /> : null}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="mt-5 flex flex-wrap gap-2">
-                    <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-gray-300">
-                      {scenarioLabel}: {scenarioTemplates.find((item) => item.id === selectedScenarioId)?.title}
-                    </span>
-                    <span className="rounded-full border border-primary/15 bg-primary/10 px-3 py-1.5 text-xs text-primary">
-                      {generationStatus}
-                    </span>
-                  </div>
-                </div>
-                <div className="mt-4 rounded-[1.2rem] border border-white/8 bg-black/20 p-4">
-                  <div className="mb-3">
-                    <label htmlFor="text2bt-input" className="text-[11px] uppercase tracking-[0.22em] text-gray-500">
-                      {text2btSection.taskInputTitle}
-                    </label>
                     <textarea
                       id="text2bt-input"
                       data-testid="text2bt-input"
                       value={draftPrompt}
                       onChange={(event) => setDraftPrompt(event.target.value)}
                       placeholder={text2btSection.conversationPlaceholder}
-                      className="mt-3 min-h-[96px] w-full resize-none rounded-[1rem] border border-white/8 bg-[#060913] px-4 py-3 text-sm leading-7 text-white outline-none transition-colors placeholder:text-gray-600 focus:border-primary/35"
+                      className="min-h-[116px] w-full resize-none rounded-[1.2rem] border border-sky-400/10 bg-[linear-gradient(180deg,rgba(11,15,24,0.96),rgba(8,12,20,0.94))] px-4 py-4 text-2xl font-semibold leading-tight tracking-[-0.03em] text-white outline-none transition-colors placeholder:text-gray-600 focus:border-primary/35 sm:text-[1.95rem]"
                     />
-                  </div>
-                  <div className="text-[11px] uppercase tracking-[0.22em] text-gray-500">{text2btSection.processLabel}</div>
-                  {visibleFlowSteps.length === 0 ? (
-                    <div className="mt-3 text-sm leading-7 text-gray-500">
-                      {text2btSection.processPlaceholder}
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {scenarioTemplates.map((template) => {
+                        const Icon = template.icon
+                        const isActive = selectedScenarioId === template.id
+
+                        return (
+                          <button
+                            key={template.id}
+                            type="button"
+                            className={`inline-flex items-center gap-2 rounded-full border px-3 py-2 text-xs transition-colors ${
+                              isActive
+                                ? 'border-primary/20 bg-primary/12 text-primary'
+                                : 'border-white/10 bg-white/[0.03] text-gray-300 hover:border-primary/20 hover:text-white'
+                            }`}
+                            onClick={() => {
+                              setSelectedScenarioId(template.id)
+                              setDraftPrompt(defaultPrompts[template.id] ?? template.title)
+                            }}
+                          >
+                            <Icon className="h-3.5 w-3.5" />
+                            <span>{template.title}</span>
+                          </button>
+                        )
+                      })}
                     </div>
-                  ) : (
-                    <div className="mt-3 space-y-2.5">
-                      {visibleFlowSteps.map((step, index) => {
+                  </div>
+
+                  <div
+                    data-testid="text2bt-prompt"
+                    className="rounded-[1.5rem] border border-white/6 bg-[radial-gradient(circle_at_top_right,rgba(59,130,246,0.12),transparent_34%),linear-gradient(180deg,rgba(13,18,29,0.98),rgba(9,13,20,0.96))] p-4"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/12 text-primary">
+                        <Sparkles className="h-4 w-4" />
+                      </div>
+                      <div className="text-[11px] uppercase tracking-[0.28em] text-primary/75">Robot Figma AI</div>
+                    </div>
+                    <div className="mt-4 text-sm leading-7 text-gray-200">
+                      {assistantMessage || (
+                        <span className="text-gray-500">{text2btSection.assistantPlaceholder}</span>
+                      )}
+                      {generationPhase === 'chatting' && assistantMessage ? <TypingDots /> : null}
+                    </div>
+                    <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                      {[
+                        { label: intentCardLabel, value: selectedScenario.title },
+                        { label: actionCardLabel, value: summaryActionValue },
+                        { label: outputCardLabel, value: text2btSection.generatedTreeLabel },
+                      ].map((item) => (
+                        <div
+                          key={item.label}
+                          className={`rounded-[1.1rem] border px-3.5 py-3 transition-all duration-300 ${
+                            showGeneratedMeta
+                              ? 'border-white/8 bg-white/[0.03]'
+                              : 'border-white/6 bg-white/[0.02] opacity-70'
+                          }`}
+                        >
+                          <div className="text-[10px] uppercase tracking-[0.24em] text-gray-500">{item.label}</div>
+                          <div className="mt-2 text-sm font-medium leading-6 text-white">
+                            {showGeneratedMeta ? item.value : '--'}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="rounded-[1.5rem] border border-white/6 bg-white/[0.02] p-4">
+                    <div className="mb-3 flex items-center justify-between gap-3">
+                      <div className="text-[11px] uppercase tracking-[0.24em] text-gray-500">{text2btSection.processLabel}</div>
+                      <div className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-[11px] text-gray-300">
+                        {orchestrationSteps.length} steps
+                      </div>
+                    </div>
+                    <div className="grid gap-2.5 sm:grid-cols-3">
+                      {orchestrationSteps.map((step, index) => {
                         const isActive = generationPhase !== 'complete' && generationStepIndex === index
                         const isComplete = generationPhase === 'rendering' || generationPhase === 'complete'
+                        const isVisible = visibleFlowSteps.length > 0 && index <= generationStepIndex
 
                         return (
                           <motion.div
                             key={step}
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.28, ease: 'easeOut' }}
-                            className="flex items-center gap-3 text-sm"
-                          >
-                            <span className={`flex h-6 w-6 items-center justify-center rounded-full border text-[11px] ${
+                            initial={{ opacity: 0.85, y: 0 }}
+                            animate={{ opacity: isActive || isVisible || isComplete ? 1 : 0.62, y: 0 }}
+                            transition={{ duration: 0.24, ease: 'easeOut' }}
+                            className={`rounded-[1.15rem] border p-3.5 ${
                               isActive || (isComplete && index <= generationStepIndex)
-                                ? 'border-primary/20 bg-primary text-white'
-                                : 'border-white/10 bg-white/[0.04] text-gray-500'
+                                ? 'border-primary/25 bg-primary/10'
+                                : 'border-white/8 bg-white/[0.025]'
+                            }`}
+                          >
+                            <div className={`flex h-7 w-7 items-center justify-center rounded-full text-[11px] font-semibold ${
+                              isActive || (isComplete && index <= generationStepIndex)
+                                ? 'bg-primary text-white'
+                                : 'bg-white/[0.05] text-gray-400'
                             }`}
                             >
                               {index + 1}
-                            </span>
-                            <span className={isActive || (isComplete && index <= generationStepIndex) ? 'text-white' : 'text-gray-500'}>
+                            </div>
+                            <div className={`mt-3 text-sm leading-6 ${
+                              isActive || (isComplete && index <= generationStepIndex) ? 'text-white' : 'text-gray-400'
+                            }`}
+                            >
                               {step}
-                            </span>
+                            </div>
                           </motion.div>
                         )
                       })}
                     </div>
-                  )}
-                </div>
-                <div className="mt-4 flex justify-end">
-                  <Button
-                    variant="primary"
-                    className="rounded-full px-5"
-                    data-testid="text2bt-generate"
-                    disabled={generationPhase !== 'idle' && generationPhase !== 'complete'}
-                    onClick={() => runGenerationDemo(selectedScenarioId, draftPrompt)}
-                  >
-                    <span className="inline-flex items-center gap-2">
-                      <SendHorizonal className="h-4 w-4" />
-                      {generationPhase === 'idle' || generationPhase === 'complete' ? text2btSection.generateButton : text2btSection.generatingButton}
-                    </span>
-                  </Button>
+
+                    <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="text-sm text-gray-400">
+                        <span className="font-medium text-gray-200">{footerStatusLabel}:</span> {processSummary}
+                      </div>
+                      <Button
+                        variant="primary"
+                        className="w-full rounded-[1.2rem] px-5 py-3 sm:w-auto"
+                        data-testid="text2bt-generate"
+                        disabled={generationPhase !== 'idle' && generationPhase !== 'complete'}
+                        onClick={() => runGenerationDemo(selectedScenarioId, draftPrompt)}
+                      >
+                        <span className="inline-flex items-center gap-2">
+                          <SendHorizonal className="h-4 w-4" />
+                          {generationPhase === 'idle' || generationPhase === 'complete' ? text2btSection.generateButton : text2btSection.generatingButton}
+                        </span>
+                      </Button>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -364,7 +391,7 @@ export function Text2BTSection() {
                 ))}
               </div>
 
-              <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_280px]">
+              <div className="space-y-4">
                 <div className="relative min-h-[560px] overflow-hidden rounded-[1.8rem] border border-white/10 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.03),rgba(255,255,255,0.01)_42%,rgba(0,0,0,0.18)_100%)]">
                   <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_35%,rgba(59,130,246,0.1),transparent_18%)]" />
                   <motion.div
@@ -435,40 +462,51 @@ export function Text2BTSection() {
                   )}
                 </div>
 
-                <div className="space-y-4">
-                  <div className="rounded-[1.4rem] border border-white/10 bg-black/30 p-4">
-                    <div className="text-[11px] uppercase tracking-[0.24em] text-primary/70">
-                      {text2btSection.nodeDetailTitle}
-                    </div>
-                    <div className="mt-3 text-lg font-semibold text-white">{showGeneratedMeta ? selectedNode.label : text2btSection.nodeDetailWaiting}</div>
-                    <div className="mt-2 flex flex-wrap gap-2">
-                      <div className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-gray-300">
-                        {showGeneratedMeta ? selectedNode.type : text2btSection.nodeDetailPending}
+                <div className="rounded-[1.5rem] border border-primary/16 bg-[radial-gradient(circle_at_top_right,rgba(249,115,22,0.08),transparent_36%),linear-gradient(180deg,rgba(8,12,20,0.92),rgba(6,10,16,0.9))] p-3.5 sm:p-4">
+                  <div className="mb-3 flex items-center justify-between gap-3">
+                    <div className="text-[11px] uppercase tracking-[0.24em] text-primary/70">{movedPanelLabel}</div>
+                    <div className="text-xs text-gray-500">{text2btSection.nodeDetailTitle} + {text2btSection.summaryTitle}</div>
+                  </div>
+
+                  <div className="grid gap-3 lg:grid-cols-2">
+                    <div className="rounded-[1.2rem] border border-white/10 bg-black/30 p-4">
+                      <div className="text-[11px] uppercase tracking-[0.24em] text-primary/70">
+                        {text2btSection.nodeDetailTitle}
                       </div>
-                      <div className="rounded-full border border-primary/15 bg-primary/10 px-3 py-1 text-xs text-primary">
-                        {showGeneratedMeta ? selectedNode.status : text2btSection.nodeDetailStatus}
+                      <div className="mt-3 text-lg font-semibold text-white">{showGeneratedMeta ? selectedNode.label : text2btSection.nodeDetailWaiting}</div>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        <div className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-gray-300">
+                          {showGeneratedMeta ? selectedNode.type : text2btSection.nodeDetailPending}
+                        </div>
+                        <div className="rounded-full border border-primary/15 bg-primary/10 px-3 py-1 text-xs text-primary">
+                          {showGeneratedMeta ? selectedNode.status : text2btSection.nodeDetailStatus}
+                        </div>
+                      </div>
+                      <div className="mt-4 text-sm leading-7 text-gray-400">
+                        {showGeneratedMeta ? selectedNode.detail : text2btSection.nodeDetailDescription}
                       </div>
                     </div>
-                    <div className="mt-4 text-sm leading-7 text-gray-400">
-                      {showGeneratedMeta ? selectedNode.detail : text2btSection.nodeDetailDescription}
+
+                    <div className="rounded-[1.2rem] border border-white/10 bg-black/30 p-4">
+                      <div className="text-[11px] uppercase tracking-[0.24em] text-primary/70">
+                        {text2btSection.summaryTitle}
+                      </div>
+                      <div className="mt-3 text-sm leading-7 text-gray-300">
+                        {showGeneratedMeta ? activeTree.summary : text2btSection.summaryWaiting}
+                      </div>
+                      <div className="mt-4 flex flex-wrap gap-2">
+                        <div className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-gray-300">
+                          {showGeneratedMeta ? `${selectedScenarioId}_tree_v1` : text2btSection.summaryChipWaiting}
+                        </div>
+                        <div className="rounded-full border border-emerald-400/15 bg-emerald-400/10 px-3 py-1.5 text-xs text-emerald-300">
+                          {showGeneratedMeta ? text2btSection.generatedTreeLabel : text2btSection.summaryChipHint}
+                        </div>
+                      </div>
                     </div>
                   </div>
 
-                  <div className="rounded-[1.4rem] border border-white/10 bg-black/30 p-4">
-                    <div className="text-[11px] uppercase tracking-[0.24em] text-primary/70">
-                      {text2btSection.summaryTitle}
-                    </div>
-                    <div className="mt-3 text-sm leading-7 text-gray-300">
-                      {showGeneratedMeta ? activeTree.summary : text2btSection.summaryWaiting}
-                    </div>
-                    <div className="mt-4 flex flex-wrap gap-2">
-                      <div className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-gray-300">
-                        {showGeneratedMeta ? `${selectedScenarioId}_tree_v1` : text2btSection.summaryChipWaiting}
-                      </div>
-                      <div className="rounded-full border border-emerald-400/15 bg-emerald-400/10 px-3 py-1.5 text-xs text-emerald-300">
-                        {showGeneratedMeta ? text2btSection.generatedTreeLabel : text2btSection.summaryChipHint}
-                      </div>
-                    </div>
+                  <div className="mt-3 rounded-xl border border-dashed border-white/12 bg-white/[0.02] px-3 py-2.5 text-xs text-gray-500">
+                    {reserveAreaLabel}
                   </div>
                 </div>
               </div>

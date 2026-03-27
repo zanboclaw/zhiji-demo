@@ -1,0 +1,364 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Text2BT Detail-Below Preview V1</title>
+    <style>
+      :root {
+        --bg: #04070d;
+        --card: rgba(9, 13, 21, 0.94);
+        --card-soft: rgba(10, 15, 24, 0.86);
+        --line: rgba(255, 255, 255, 0.08);
+        --line-soft: rgba(255, 255, 255, 0.05);
+        --text: #f7fafc;
+        --text-soft: #9aa5b8;
+        --text-dim: #667388;
+        --orange: #f97316;
+        --cyan: #60a5fa;
+        --green: #34d399;
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "Inter", "Segoe UI", sans-serif;
+        color: var(--text);
+        background:
+          radial-gradient(circle at 12% 8%, rgba(249, 115, 22, 0.14), transparent 23%),
+          radial-gradient(circle at 86% 10%, rgba(59, 130, 246, 0.14), transparent 26%),
+          linear-gradient(180deg, #03050a 0%, #05080e 55%, #04060a 100%);
+      }
+
+      .frame {
+        width: 1500px;
+        min-height: 980px;
+        margin: 0 auto;
+        padding: 46px 54px;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .grid {
+        position: absolute;
+        inset: 0;
+        background:
+          linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+        background-size: 44px 44px;
+        mask-image: linear-gradient(180deg, rgba(0,0,0,0.82), rgba(0,0,0,0.18));
+        pointer-events: none;
+      }
+
+      .label {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 14px;
+        border-radius: 999px;
+        border: 1px solid rgba(249, 115, 22, 0.2);
+        background: rgba(249, 115, 22, 0.08);
+        font-size: 11px;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        color: #ffc899;
+      }
+
+      .label::before {
+        content: "";
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: linear-gradient(180deg, #ffd4b0, #fb923c);
+        box-shadow: 0 0 0 5px rgba(249, 115, 22, 0.15);
+      }
+
+      h1 {
+        margin: 18px 0 0;
+        font-size: 46px;
+        line-height: 1.04;
+        letter-spacing: -0.045em;
+      }
+
+      h1 span {
+        display: block;
+        background: linear-gradient(90deg, #fb923c 0%, #ffe2c2 34%, #9bd7ff 72%, #65a7ff 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+
+      .subtitle {
+        margin-top: 14px;
+        max-width: 980px;
+        color: var(--text-soft);
+        font-size: 16px;
+        line-height: 1.8;
+      }
+
+      .canvas {
+        margin-top: 26px;
+        border-radius: 32px;
+        border: 1px solid var(--line);
+        background: linear-gradient(180deg, rgba(8,12,18,0.95), rgba(5,8,14,0.92));
+        box-shadow: 0 34px 88px rgba(2, 6, 23, 0.46);
+        padding: 18px;
+      }
+
+      .toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 4px 4px 12px;
+      }
+
+      .toolbar .title {
+        font-size: 24px;
+        font-weight: 700;
+      }
+
+      .toolbar .title small {
+        display: block;
+        margin-top: 6px;
+        color: var(--text-soft);
+        font-size: 13px;
+        font-weight: 500;
+      }
+
+      .actions {
+        display: flex;
+        gap: 8px;
+      }
+
+      .pill {
+        padding: 10px 13px;
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        background: rgba(255,255,255,0.04);
+        color: #dbe7f6;
+        font-size: 12px;
+      }
+
+      .top-tree {
+        height: 420px;
+        border-radius: 26px;
+        border: 1px solid var(--line-soft);
+        background:
+          radial-gradient(circle at 50% 18%, rgba(59, 130, 246, 0.12), transparent 22%),
+          linear-gradient(180deg, rgba(9,14,22,0.95), rgba(7,11,18,0.94));
+        position: relative;
+        overflow: hidden;
+      }
+
+      .top-tree .node {
+        position: absolute;
+        padding: 11px 14px;
+        border-radius: 16px;
+        border: 1px solid rgba(255,255,255,0.08);
+        background: rgba(10,14,22,0.9);
+        font-size: 13px;
+        color: #dbe6f5;
+      }
+
+      .top-tree .node.root {
+        border-color: rgba(249, 115, 22, 0.26);
+        background: rgba(249, 115, 22, 0.12);
+      }
+
+      .top-tree .line {
+        position: absolute;
+        background: rgba(255,255,255,0.12);
+      }
+
+      .moved-area {
+        margin-top: 14px;
+        border-radius: 26px;
+        border: 1px solid rgba(249, 115, 22, 0.22);
+        background:
+          radial-gradient(circle at top right, rgba(249, 115, 22, 0.1), transparent 30%),
+          linear-gradient(180deg, rgba(10,14,22,0.92), rgba(8,12,19,0.88));
+        padding: 14px;
+      }
+
+      .moved-area .head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 12px;
+      }
+
+      .moved-area .head .l {
+        color: #ffbf8a;
+        font-size: 12px;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+      }
+
+      .moved-area .head .r {
+        font-size: 12px;
+        color: var(--text-soft);
+      }
+
+      .cards {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .card {
+        border-radius: 20px;
+        border: 1px solid var(--line-soft);
+        background: var(--card-soft);
+        padding: 14px 14px 12px;
+      }
+
+      .card .k {
+        font-size: 11px;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        color: var(--text-dim);
+      }
+
+      .card .v {
+        margin-top: 9px;
+        font-size: 31px;
+        line-height: 1.05;
+        letter-spacing: -0.03em;
+        font-weight: 700;
+      }
+
+      .card .desc {
+        margin-top: 9px;
+        font-size: 14px;
+        line-height: 1.75;
+        color: var(--text-soft);
+      }
+
+      .tags {
+        margin-top: 10px;
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      .tag {
+        padding: 6px 10px;
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        background: rgba(255,255,255,0.04);
+        color: #d6e2f1;
+        font-size: 12px;
+      }
+
+      .tag.success {
+        border-color: rgba(52, 211, 153, 0.25);
+        background: rgba(52, 211, 153, 0.14);
+        color: #9deac8;
+      }
+
+      .footer-note {
+        margin-top: 14px;
+        border-radius: 14px;
+        border: 1px dashed rgba(255,255,255,0.16);
+        background: rgba(255,255,255,0.02);
+        padding: 10px 12px;
+        font-size: 13px;
+        color: var(--text-soft);
+      }
+
+      .arrow {
+        position: absolute;
+        right: 74px;
+        top: 370px;
+        width: 180px;
+        height: 180px;
+        pointer-events: none;
+      }
+      .arrow svg { width: 100%; height: 100%; }
+      .arrow path {
+        stroke: rgba(249, 115, 22, 0.8);
+        stroke-width: 3;
+        fill: none;
+        stroke-linecap: round;
+      }
+      .arrow polygon { fill: rgba(249, 115, 22, 0.92); }
+    </style>
+  </head>
+  <body>
+    <div class="frame">
+      <div class="grid"></div>
+      <div class="label">Layout Proposal</div>
+      <h1>Move node detail panels<span>below the tree canvas</span></h1>
+      <div class="subtitle">
+        The right-side panel becomes a bottom information area, so the tree gets full horizontal focus while
+        node detail and generated summary stay visible in a cleaner, more stable reading zone.
+      </div>
+
+      <div class="canvas">
+        <div class="toolbar">
+          <div class="title">
+            Behavior Tree Visualization
+            <small>After layout: tree on top, detail cards below</small>
+          </div>
+          <div class="actions">
+            <div class="pill">Zoom out</div>
+            <div class="pill">Zoom in</div>
+            <div class="pill">Export</div>
+          </div>
+        </div>
+
+        <div class="top-tree">
+          <div class="line" style="left: 50%; top: 94px; width: 1px; height: 164px;"></div>
+          <div class="line" style="left: calc(50% - 265px); top: 168px; width: 530px; height: 1px;"></div>
+          <div class="line" style="left: calc(50% - 265px); top: 168px; width: 1px; height: 96px;"></div>
+          <div class="line" style="left: 50%; top: 168px; width: 1px; height: 96px;"></div>
+          <div class="line" style="left: calc(50% + 265px); top: 168px; width: 1px; height: 96px;"></div>
+
+          <div class="node root" style="left: calc(50% - 86px); top: 54px;">Night Security Patrol</div>
+          <div class="node" style="left: calc(50% - 338px); top: 150px;">Environment Perception</div>
+          <div class="node" style="left: calc(50% - 76px); top: 150px;">Route Patrol</div>
+          <div class="node" style="left: calc(50% + 212px); top: 150px;">Incident Handling</div>
+          <div class="node" style="left: calc(50% - 366px); top: 256px;">Vision Detection</div>
+          <div class="node" style="left: calc(50% - 198px); top: 256px;">Status Report</div>
+          <div class="node" style="left: calc(50% + 172px); top: 256px;">Photo Evidence</div>
+          <div class="node" style="left: calc(50% + 340px); top: 256px;">Alert Dispatch</div>
+        </div>
+
+        <div class="moved-area">
+          <div class="head">
+            <div class="l">Moved Below Tree</div>
+            <div class="r">Node Detail + Generated Summary</div>
+          </div>
+          <div class="cards">
+            <div class="card">
+              <div class="k">Node Detail</div>
+              <div class="v">Night Security Patrol</div>
+              <div class="desc">
+                Root node that links perception, patrol execution, and incident handling into one ordered mission.
+              </div>
+              <div class="tags">
+                <div class="tag">sequence</div>
+                <div class="tag">running</div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="k">Generated Summary</div>
+              <div class="desc">
+                Current logic tree covers perception, patrol routing, incident capture, and alert dispatch with low-light enhancement.
+              </div>
+              <div class="tags">
+                <div class="tag">security_tree_v1</div>
+                <div class="tag success">Behavior tree generated</div>
+              </div>
+            </div>
+          </div>
+          <div class="footer-note">
+            Reserved area under these cards can hold future modules, such as execution logs, node history, or telemetry snapshots.
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
