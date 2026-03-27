@@ -1,0 +1,991 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700;800&family=Sora:wght@400;600;700&display=swap" rel="stylesheet" />
+    <title>Text2BT Hybrid Mockup V1</title>
+    <style>
+      :root {
+        --bg: #04070c;
+        --panel: rgba(10, 14, 22, 0.92);
+        --panel-soft: rgba(8, 12, 19, 0.82);
+        --line: rgba(255, 255, 255, 0.08);
+        --line-soft: rgba(255, 255, 255, 0.05);
+        --text: #f8fafc;
+        --text-soft: #97a3b6;
+        --text-dim: #637188;
+        --blue: #60a5fa;
+        --blue-strong: #3b82f6;
+        --amber: #fb923c;
+        --amber-strong: #f97316;
+        --green: #34d399;
+        --violet: #a78bfa;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "Noto Sans SC", "Sora", "Segoe UI", sans-serif;
+        color: var(--text);
+        background:
+          radial-gradient(circle at 12% 10%, rgba(249, 115, 22, 0.14), transparent 26%),
+          radial-gradient(circle at 82% 8%, rgba(59, 130, 246, 0.18), transparent 24%),
+          linear-gradient(180deg, #020406 0%, #04080e 48%, #05070b 100%);
+      }
+
+      .frame {
+        position: relative;
+        width: 1600px;
+        min-height: 920px;
+        margin: 0 auto;
+        overflow: hidden;
+      }
+
+      .frame::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+          linear-gradient(rgba(96, 165, 250, 0.04) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(96, 165, 250, 0.04) 1px, transparent 1px);
+        background-size: 40px 40px;
+        mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.82), rgba(0, 0, 0, 0.2));
+        pointer-events: none;
+      }
+
+      .section {
+        position: relative;
+        padding: 56px 88px 40px;
+      }
+
+      .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 14px;
+        border-radius: 999px;
+        border: 1px solid rgba(96, 165, 250, 0.16);
+        background: rgba(59, 130, 246, 0.08);
+        color: #a9d8ff;
+        font-size: 11px;
+        letter-spacing: 0.24em;
+        text-transform: uppercase;
+      }
+
+      .eyebrow::before {
+        content: "";
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: linear-gradient(180deg, #9fd5ff, #3b82f6);
+        box-shadow: 0 0 0 5px rgba(59, 130, 246, 0.14);
+      }
+
+      .hero {
+        margin-top: 18px;
+      }
+
+      .hero h1 {
+        margin: 0;
+        font-size: 48px;
+        line-height: 1.04;
+        letter-spacing: -0.04em;
+      }
+
+      .hero h1 span {
+        display: block;
+        background: linear-gradient(90deg, #fb923c 0%, #ffddb8 32%, #8fd0ff 72%, #60a5fa 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+
+      .hero p {
+        max-width: 760px;
+        margin: 14px 0 0;
+        color: var(--text-soft);
+        font-size: 17px;
+        line-height: 1.8;
+      }
+
+      .shell {
+        position: relative;
+        display: grid;
+        grid-template-columns: 408px minmax(0, 1fr);
+        gap: 18px;
+        margin-top: 26px;
+        padding: 18px;
+        border-radius: 34px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background:
+          linear-gradient(180deg, rgba(8, 12, 19, 0.94), rgba(4, 8, 14, 0.9)),
+          rgba(0, 0, 0, 0.2);
+        box-shadow:
+          0 30px 80px rgba(2, 6, 23, 0.42),
+          inset 0 1px 0 rgba(255, 255, 255, 0.04);
+      }
+
+      .shell::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: 34px;
+        background:
+          radial-gradient(circle at 16% 0%, rgba(249, 115, 22, 0.08), transparent 24%),
+          radial-gradient(circle at 82% 10%, rgba(59, 130, 246, 0.1), transparent 22%);
+        pointer-events: none;
+      }
+
+      .panel {
+        position: relative;
+        border-radius: 28px;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        background: var(--panel);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+      }
+
+      .left {
+        padding: 18px;
+      }
+
+      .right {
+        padding: 18px;
+        background:
+          linear-gradient(180deg, rgba(9, 13, 20, 0.95), rgba(7, 10, 17, 0.92));
+      }
+
+      .header-row {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .lead {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+      }
+
+      .icon {
+        display: grid;
+        place-items: center;
+        width: 42px;
+        height: 42px;
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: linear-gradient(135deg, rgba(249, 115, 22, 0.18), rgba(251, 146, 60, 0.08));
+        color: #ffd2af;
+        font-size: 19px;
+      }
+
+      .icon.blue {
+        background: linear-gradient(135deg, rgba(59, 130, 246, 0.18), rgba(96, 165, 250, 0.08));
+        color: #bfe2ff;
+      }
+
+      .tiny {
+        color: var(--text-dim);
+        font-size: 10px;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+      }
+
+      .title {
+        margin-top: 5px;
+        font-size: 21px;
+        font-weight: 700;
+      }
+
+      .desc {
+        margin-top: 4px;
+        color: var(--text-soft);
+        font-size: 13px;
+        line-height: 1.6;
+      }
+
+      .status-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 12px;
+        border-radius: 999px;
+        border: 1px solid rgba(52, 211, 153, 0.2);
+        background: rgba(52, 211, 153, 0.08);
+        color: #9ff0cf;
+        font-size: 12px;
+        white-space: nowrap;
+      }
+
+      .status-chip::before {
+        content: "";
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--green);
+        box-shadow: 0 0 0 5px rgba(52, 211, 153, 0.12);
+      }
+
+      .scene-strip {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 10px;
+        margin-top: 16px;
+      }
+
+      .scene-pill {
+        padding: 12px 8px;
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(255, 255, 255, 0.025);
+        color: #c9d1dd;
+        text-align: center;
+        font-size: 13px;
+      }
+
+      .scene-pill.active {
+        border-color: rgba(59, 130, 246, 0.28);
+        background:
+          linear-gradient(180deg, rgba(59, 130, 246, 0.14), rgba(59, 130, 246, 0.05)),
+          rgba(255, 255, 255, 0.03);
+        color: #eaf5ff;
+        box-shadow: 0 14px 30px rgba(59, 130, 246, 0.12);
+      }
+
+      .composer {
+        margin-top: 16px;
+        padding: 16px;
+        border-radius: 22px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(255, 255, 255, 0.025);
+      }
+
+      .conversation {
+        margin-top: 12px;
+        padding: 14px;
+        border-radius: 18px;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        background:
+          linear-gradient(180deg, rgba(13, 18, 28, 0.9), rgba(5, 8, 12, 0.78));
+      }
+
+      .bubble-row {
+        display: flex;
+        margin-top: 10px;
+      }
+
+      .bubble-row.user {
+        justify-content: flex-end;
+      }
+
+      .bubble {
+        max-width: 92%;
+        padding: 12px 14px;
+        border-radius: 16px;
+        font-size: 13px;
+        line-height: 1.75;
+      }
+
+      .bubble.user {
+        border: 1px solid rgba(249, 115, 22, 0.2);
+        background: rgba(249, 115, 22, 0.12);
+        color: #fff3ea;
+      }
+
+      .bubble.ai {
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(255, 255, 255, 0.03);
+        color: #d7dfea;
+      }
+
+      .prompt-card {
+        margin-top: 12px;
+        padding: 14px;
+        border-radius: 18px;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        background: rgba(4, 8, 13, 0.88);
+      }
+
+      .prompt-box {
+        margin-top: 10px;
+        min-height: 92px;
+        padding: 14px;
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        background: rgba(255, 255, 255, 0.02);
+        color: #eef3f8;
+        font-size: 14px;
+        line-height: 1.8;
+      }
+
+      .process-card {
+        margin-top: 12px;
+        padding: 14px;
+        border-radius: 18px;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        background: rgba(255, 255, 255, 0.02);
+      }
+
+      .process-list {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+        margin-top: 10px;
+      }
+
+      .process-item {
+        position: relative;
+        padding: 10px 10px 10px 36px;
+        border-radius: 14px;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        background: rgba(255, 255, 255, 0.02);
+      }
+
+      .process-item::before {
+        content: "";
+        position: absolute;
+        left: 10px;
+        top: 50%;
+        width: 18px;
+        height: 18px;
+        margin-top: -9px;
+        border-radius: 50%;
+        background: linear-gradient(180deg, #fb923c, #f97316);
+        box-shadow: 0 8px 18px rgba(249, 115, 22, 0.16);
+      }
+
+      .process-item.active {
+        border-color: rgba(249, 115, 22, 0.22);
+        background:
+          linear-gradient(180deg, rgba(249, 115, 22, 0.12), rgba(249, 115, 22, 0.04)),
+          rgba(255, 255, 255, 0.02);
+      }
+
+      .process-title {
+        font-size: 12px;
+        font-weight: 600;
+        line-height: 1.5;
+      }
+
+      .process-state {
+        margin-top: 4px;
+        color: var(--text-dim);
+        font-size: 10px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      }
+
+      .actions {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 12px;
+      }
+
+      .button {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 13px 18px;
+        border-radius: 999px;
+        border: 1px solid rgba(249, 115, 22, 0.26);
+        background: linear-gradient(135deg, #fb923c, #f97316);
+        color: #fff;
+        font-size: 14px;
+        font-weight: 700;
+        box-shadow: 0 16px 34px rgba(249, 115, 22, 0.24);
+      }
+
+      .toolbar {
+        display: flex;
+        gap: 8px;
+      }
+
+      .tool {
+        padding: 10px 12px;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(255, 255, 255, 0.03);
+        color: #d7deea;
+        font-size: 12px;
+      }
+
+      .metrics {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+        margin-top: 14px;
+      }
+
+      .metric {
+        padding: 14px 16px;
+        border-radius: 18px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(255, 255, 255, 0.03);
+      }
+
+      .metric .k {
+        color: var(--text-dim);
+        font-size: 10px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+      }
+
+      .metric .v {
+        margin-top: 8px;
+        font-size: 24px;
+        font-weight: 700;
+      }
+
+      .content-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 256px;
+        gap: 12px;
+        margin-top: 14px;
+      }
+
+      .tree-stage {
+        position: relative;
+        height: 486px;
+        overflow: hidden;
+        border-radius: 24px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background:
+          radial-gradient(circle at 50% 18%, rgba(59, 130, 246, 0.11), transparent 18%),
+          linear-gradient(180deg, rgba(7, 11, 17, 0.94), rgba(5, 8, 13, 0.9));
+      }
+
+      .tree-stage::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+          linear-gradient(rgba(96, 165, 250, 0.04) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(96, 165, 250, 0.04) 1px, transparent 1px);
+        background-size: 34px 34px;
+        mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.84), rgba(0, 0, 0, 0.32));
+      }
+
+      .tree-inner {
+        position: relative;
+        z-index: 1;
+        height: 100%;
+        padding: 18px;
+        overflow: auto;
+      }
+
+      .tree-column {
+        display: grid;
+        gap: 12px;
+      }
+
+      .tree-row {
+        display: flex;
+        align-items: flex-start;
+        gap: 14px;
+      }
+
+      .indent {
+        display: flex;
+        align-items: center;
+        margin-top: 20px;
+      }
+
+      .indent.level-0 {
+        width: 0;
+      }
+
+      .indent.level-1 {
+        width: 32px;
+      }
+
+      .indent.level-2 {
+        width: 64px;
+      }
+
+      .line-h {
+        width: 18px;
+        height: 1px;
+        background: rgba(96, 165, 250, 0.34);
+      }
+
+      .node {
+        flex: 1;
+        min-width: 0;
+        padding: 14px 16px;
+        border-radius: 18px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(10, 15, 22, 0.82);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+      }
+
+      .node.sequence {
+        border-color: rgba(249, 115, 22, 0.22);
+        background: linear-gradient(180deg, rgba(249, 115, 22, 0.14), rgba(249, 115, 22, 0.05));
+      }
+
+      .node.selector {
+        border-color: rgba(167, 139, 250, 0.22);
+        background: linear-gradient(180deg, rgba(167, 139, 250, 0.14), rgba(167, 139, 250, 0.05));
+      }
+
+      .node.condition {
+        border-color: rgba(52, 211, 153, 0.22);
+        background: linear-gradient(180deg, rgba(52, 211, 153, 0.14), rgba(52, 211, 153, 0.05));
+      }
+
+      .node.action {
+        border-color: rgba(255, 255, 255, 0.1);
+        background: rgba(10, 15, 22, 0.82);
+      }
+
+      .node.active {
+        box-shadow:
+          0 18px 38px rgba(59, 130, 246, 0.14),
+          inset 0 1px 0 rgba(255, 255, 255, 0.05);
+      }
+
+      .node-head {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+      }
+
+      .dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        margin-top: 7px;
+        flex: none;
+      }
+
+      .sequence .dot {
+        background: var(--amber);
+        box-shadow: 0 0 0 6px rgba(249, 115, 22, 0.12);
+      }
+
+      .selector .dot {
+        background: var(--violet);
+        box-shadow: 0 0 0 6px rgba(167, 139, 250, 0.12);
+      }
+
+      .condition .dot {
+        background: var(--green);
+        box-shadow: 0 0 0 6px rgba(52, 211, 153, 0.12);
+      }
+
+      .action .dot {
+        background: #94a3b8;
+        box-shadow: 0 0 0 6px rgba(148, 163, 184, 0.1);
+      }
+
+      .node-title {
+        font-size: 15px;
+        font-weight: 700;
+      }
+
+      .node-type {
+        margin-top: 4px;
+        color: var(--text-dim);
+        font-size: 10px;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+      }
+
+      .node-detail {
+        margin-top: 9px;
+        color: #d8e0ec;
+        font-size: 12px;
+        line-height: 1.7;
+      }
+
+      .node-foot {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 10px;
+      }
+
+      .badge {
+        padding: 7px 10px;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(255, 255, 255, 0.04);
+        font-size: 10px;
+        color: #eef3f8;
+        text-transform: uppercase;
+      }
+
+      .summary-side {
+        display: grid;
+        gap: 12px;
+        height: 486px;
+      }
+
+      .side-card {
+        padding: 16px;
+        border-radius: 22px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(255, 255, 255, 0.03);
+      }
+
+      .side-card .body-title {
+        margin-top: 8px;
+        font-size: 18px;
+        font-weight: 700;
+      }
+
+      .pills {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 10px;
+      }
+
+      .pills span {
+        padding: 7px 9px;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(255, 255, 255, 0.04);
+        color: #dbe4f1;
+        font-size: 10px;
+      }
+
+      .side-card p {
+        margin: 12px 0 0;
+        color: var(--text-soft);
+        font-size: 12px;
+        line-height: 1.75;
+      }
+
+      .side-card.summary {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+      }
+
+      .summary-chip-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 12px;
+      }
+
+      .summary-chip-row span {
+        padding: 8px 10px;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(255, 255, 255, 0.04);
+        color: #dfe7f2;
+        font-size: 11px;
+      }
+
+      .summary-chip-row span.green {
+        border-color: rgba(52, 211, 153, 0.18);
+        background: rgba(52, 211, 153, 0.1);
+        color: #9ff0cf;
+      }
+
+      .footer-note {
+        position: absolute;
+        right: 88px;
+        bottom: 18px;
+        color: rgba(151, 163, 182, 0.72);
+        font-size: 11px;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="frame">
+      <section class="section">
+        <div class="eyebrow">Text2BT Hybrid Mockup</div>
+
+        <div class="hero">
+          <h1>一句话生成行为树<span>左侧压缩，右侧保留原网页结构</span></h1>
+          <p>输入任务描述后，系统会自动理解目标、生成执行流程，并输出可视化行为树供你检查。</p>
+        </div>
+
+        <div class="shell">
+          <div class="panel left">
+            <div class="header-row">
+              <div class="lead">
+                <div class="icon">T</div>
+                <div>
+                  <div class="tiny">Text2BT</div>
+                  <div class="title">选择场景模板</div>
+                  <div class="desc">可直接选择常见场景，也可以输入你自己的任务需求。</div>
+                </div>
+              </div>
+              <div class="status-chip">生成中</div>
+            </div>
+
+            <div class="scene-strip">
+              <div class="scene-pill">智能仓库巡检</div>
+              <div class="scene-pill">服务机器人接待</div>
+              <div class="scene-pill active">安防巡逻</div>
+              <div class="scene-pill">工业抓取装配</div>
+            </div>
+
+            <div class="composer">
+              <div class="tiny">对话</div>
+              <div class="conversation">
+                <div class="bubble-row user">
+                  <div class="bubble user">帮我给安防巡逻机器人生成夜间巡检策略，发现异常就拍照并通知值班室</div>
+                </div>
+                <div class="bubble-row">
+                  <div class="bubble ai">收到。我会先解析巡逻目标，再绑定感知、路径、取证和告警动作，随后生成安防巡逻行为树。</div>
+                </div>
+              </div>
+
+              <div class="prompt-card">
+                <div class="tiny">任务输入</div>
+                <div class="desc">输入一句任务描述，查看系统如何将其拆解为执行逻辑。</div>
+                <div class="prompt-box">帮我给安防巡逻机器人生成夜间巡检策略，发现异常就拍照并通知值班室</div>
+              </div>
+
+              <div class="process-card">
+                <div class="tiny">生成过程</div>
+                <div class="process-list">
+                  <div class="process-item">
+                    <div class="process-title">解析任务意图与约束</div>
+                    <div class="process-state">DONE</div>
+                  </div>
+                  <div class="process-item">
+                    <div class="process-title">绑定感知与巡逻技能</div>
+                    <div class="process-state">DONE</div>
+                  </div>
+                  <div class="process-item active">
+                    <div class="process-title">生成异常处理分支</div>
+                    <div class="process-state">LIVE</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="actions">
+                <div class="button">生成行为树</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel right">
+            <div class="header-row">
+              <div class="lead">
+                <div class="icon blue">B</div>
+                <div>
+                  <div class="tiny">Text2BT</div>
+                  <div class="title">行为树可视化</div>
+                  <div class="desc">安防巡逻 · 行为树已生成</div>
+                </div>
+              </div>
+              <div class="toolbar">
+                <div class="tool">缩小</div>
+                <div class="tool">放大</div>
+                <div class="tool">导出</div>
+              </div>
+            </div>
+
+            <div class="metrics">
+              <div class="metric">
+                <div class="k">节点总数</div>
+                <div class="v">14</div>
+              </div>
+              <div class="metric">
+                <div class="k">执行深度</div>
+                <div class="v">4 层</div>
+              </div>
+              <div class="metric">
+                <div class="k">推理耗时</div>
+                <div class="v">0.64s</div>
+              </div>
+            </div>
+
+            <div class="content-grid">
+              <div class="tree-stage">
+                <div class="tree-inner">
+                  <div class="tree-column">
+                    <div class="tree-row">
+                      <div class="indent level-0"></div>
+                      <div class="node sequence active">
+                        <div class="node-head">
+                          <div class="dot"></div>
+                          <div>
+                            <div class="node-title">安防夜巡</div>
+                            <div class="node-type">sequence</div>
+                          </div>
+                        </div>
+                        <div class="node-detail">根节点，负责串联巡逻主链路，保证环境感知、路线执行和异常处理依次完成。</div>
+                        <div class="node-foot">
+                          <div class="badge">running</div>
+                          <div class="badge">root</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="tree-row">
+                      <div class="indent level-1"><div class="line-h"></div></div>
+                      <div class="node selector">
+                        <div class="node-head">
+                          <div class="dot"></div>
+                          <div>
+                            <div class="node-title">环境感知</div>
+                            <div class="node-type">selector</div>
+                          </div>
+                        </div>
+                        <div class="node-detail">对视觉、热成像和运动检测结果进行融合，决定是否进入告警链路。</div>
+                        <div class="node-foot">
+                          <div class="badge">success</div>
+                          <div class="badge">sense</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="tree-row">
+                      <div class="indent level-2"><div class="line-h"></div></div>
+                      <div class="node condition">
+                        <div class="node-head">
+                          <div class="dot"></div>
+                          <div>
+                            <div class="node-title">视觉检测</div>
+                            <div class="node-type">condition</div>
+                          </div>
+                        </div>
+                        <div class="node-detail">识别异常人员、遗留物和区域遮挡。</div>
+                        <div class="node-foot">
+                          <div class="badge">success</div>
+                          <div class="badge">vision</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="tree-row">
+                      <div class="indent level-1"><div class="line-h"></div></div>
+                      <div class="node sequence">
+                        <div class="node-head">
+                          <div class="dot"></div>
+                          <div>
+                            <div class="node-title">路径巡检</div>
+                            <div class="node-type">sequence</div>
+                          </div>
+                        </div>
+                        <div class="node-detail">按巡逻航点执行移动任务，并持续监控通行状态。</div>
+                        <div class="node-foot">
+                          <div class="badge">running</div>
+                          <div class="badge">route</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="tree-row">
+                      <div class="indent level-2"><div class="line-h"></div></div>
+                      <div class="node action">
+                        <div class="node-head">
+                          <div class="dot"></div>
+                          <div>
+                            <div class="node-title">动态避障</div>
+                            <div class="node-type">action</div>
+                          </div>
+                        </div>
+                        <div class="node-detail">遇到动态障碍时实时重规划路径。</div>
+                        <div class="node-foot">
+                          <div class="badge">running</div>
+                          <div class="badge">avoid</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="tree-row">
+                      <div class="indent level-1"><div class="line-h"></div></div>
+                      <div class="node selector">
+                        <div class="node-head">
+                          <div class="dot"></div>
+                          <div>
+                            <div class="node-title">异常处理</div>
+                            <div class="node-type">selector</div>
+                          </div>
+                        </div>
+                        <div class="node-detail">当检测到风险事件时切换到取证、告警与返航待命分支。</div>
+                        <div class="node-foot">
+                          <div class="badge">ready</div>
+                          <div class="badge">alert</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="tree-row">
+                      <div class="indent level-2"><div class="line-h"></div></div>
+                      <div class="node action active">
+                        <div class="node-head">
+                          <div class="dot"></div>
+                          <div>
+                            <div class="node-title">拍照存证</div>
+                            <div class="node-type">action</div>
+                          </div>
+                        </div>
+                        <div class="node-detail">触发高清图像采集并附带位姿信息。</div>
+                        <div class="node-foot">
+                          <div class="badge">ready</div>
+                          <div class="badge">photo</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="tree-row">
+                      <div class="indent level-2"><div class="line-h"></div></div>
+                      <div class="node action">
+                        <div class="node-head">
+                          <div class="dot"></div>
+                          <div>
+                            <div class="node-title">告警通知</div>
+                            <div class="node-type">action</div>
+                          </div>
+                        </div>
+                        <div class="node-detail">通知值班室并推送异常摘要。</div>
+                        <div class="node-foot">
+                          <div class="badge">ready</div>
+                          <div class="badge">notify</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="summary-side">
+                <div class="side-card">
+                  <div class="tiny">节点详情</div>
+                  <div class="body-title">拍照存证</div>
+                  <div class="pills">
+                    <span>action</span>
+                    <span>ready</span>
+                  </div>
+                  <p>触发高清图像采集并附带位姿信息。</p>
+                </div>
+
+                <div class="side-card summary">
+                  <div>
+                    <div class="tiny">生成摘要</div>
+                    <p>当前逻辑树已覆盖感知、巡检、异常抓拍与通知分支，并为夜间低照环境附加视觉增强策略。</p>
+                  </div>
+                  <div class="summary-chip-row">
+                    <span>security_tree_v1</span>
+                    <span class="green">行为树已生成</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div class="footer-note">Zhiji Demo · Text2BT Hybrid Visual Direction Mockup V1</div>
+    </div>
+  </body>
+</html>

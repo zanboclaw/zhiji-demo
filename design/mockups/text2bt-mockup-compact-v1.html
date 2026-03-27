@@ -1,0 +1,1014 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700;800&family=Sora:wght@400;600;700&display=swap" rel="stylesheet" />
+    <title>Text2BT Compact Mockup V1</title>
+    <style>
+      :root {
+        --bg: #04070c;
+        --bg-card: rgba(9, 13, 21, 0.9);
+        --bg-card-2: rgba(12, 17, 28, 0.88);
+        --line: rgba(255, 255, 255, 0.08);
+        --line-soft: rgba(255, 255, 255, 0.05);
+        --text: #f8fafc;
+        --text-soft: #96a1b5;
+        --text-dim: #647189;
+        --blue: #62b0ff;
+        --blue-strong: #3b82f6;
+        --amber: #fb923c;
+        --amber-strong: #f97316;
+        --green: #34d399;
+        --violet: #a78bfa;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "Noto Sans SC", "Sora", "Segoe UI", sans-serif;
+        color: var(--text);
+        background:
+          radial-gradient(circle at 12% 8%, rgba(249, 115, 22, 0.14), transparent 26%),
+          radial-gradient(circle at 82% 5%, rgba(59, 130, 246, 0.18), transparent 24%),
+          linear-gradient(180deg, #020406 0%, #04070d 48%, #05070b 100%);
+      }
+
+      .frame {
+        position: relative;
+        width: 1600px;
+        min-height: 960px;
+        margin: 0 auto;
+        overflow: hidden;
+      }
+
+      .grid {
+        position: absolute;
+        inset: 0;
+        background:
+          linear-gradient(rgba(98, 176, 255, 0.04) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(98, 176, 255, 0.04) 1px, transparent 1px);
+        background-size: 42px 42px;
+        mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.82), rgba(0, 0, 0, 0.18));
+      }
+
+      .glow {
+        position: absolute;
+        top: 180px;
+        right: 120px;
+        width: 620px;
+        height: 340px;
+        background: radial-gradient(circle, rgba(59, 130, 246, 0.14), transparent 66%);
+        filter: blur(44px);
+      }
+
+      .section {
+        position: relative;
+        padding: 64px 88px 42px;
+      }
+
+      .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 14px;
+        border-radius: 999px;
+        border: 1px solid rgba(98, 176, 255, 0.16);
+        background: rgba(59, 130, 246, 0.08);
+        color: #a6d8ff;
+        font-size: 11px;
+        letter-spacing: 0.24em;
+        text-transform: uppercase;
+      }
+
+      .eyebrow::before {
+        content: "";
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: linear-gradient(180deg, #9fd5ff, #3b82f6);
+        box-shadow: 0 0 0 5px rgba(59, 130, 246, 0.14);
+      }
+
+      .hero {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 24px;
+        align-items: end;
+        margin-top: 18px;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: 50px;
+        line-height: 1.04;
+        letter-spacing: -0.04em;
+      }
+
+      h1 span {
+        display: block;
+        background: linear-gradient(90deg, #fb923c 0%, #ffddb8 34%, #8fd0ff 74%, #65a8ff 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+
+      .sub {
+        max-width: 920px;
+        margin-top: 16px;
+        color: var(--text-soft);
+        font-size: 17px;
+        line-height: 1.8;
+      }
+
+      .meta {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      .meta span {
+        padding: 10px 14px;
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.03);
+        color: #d7deea;
+        font-size: 12px;
+      }
+
+      .shell {
+        position: relative;
+        display: grid;
+        grid-template-columns: 420px minmax(0, 1fr);
+        gap: 18px;
+        margin-top: 28px;
+        padding: 18px;
+        border-radius: 34px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background:
+          linear-gradient(180deg, rgba(8, 12, 19, 0.94), rgba(4, 8, 14, 0.9)),
+          rgba(0, 0, 0, 0.2);
+        box-shadow:
+          0 30px 80px rgba(2, 6, 23, 0.42),
+          inset 0 1px 0 rgba(255, 255, 255, 0.04);
+      }
+
+      .shell::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: 34px;
+        background:
+          radial-gradient(circle at 18% 0%, rgba(249, 115, 22, 0.08), transparent 24%),
+          radial-gradient(circle at 80% 12%, rgba(59, 130, 246, 0.1), transparent 24%);
+        pointer-events: none;
+      }
+
+      .panel {
+        position: relative;
+        border-radius: 28px;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        background: var(--bg-card);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+      }
+
+      .left {
+        padding: 20px;
+      }
+
+      .right {
+        padding: 18px;
+        background:
+          linear-gradient(180deg, rgba(9, 13, 20, 0.95), rgba(7, 10, 17, 0.92));
+      }
+
+      .title-row {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .lead {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+      }
+
+      .icon {
+        display: grid;
+        place-items: center;
+        width: 42px;
+        height: 42px;
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: linear-gradient(135deg, rgba(249, 115, 22, 0.18), rgba(251, 146, 60, 0.08));
+        color: #ffd2af;
+        font-size: 19px;
+      }
+
+      .icon.blue {
+        background: linear-gradient(135deg, rgba(59, 130, 246, 0.18), rgba(98, 176, 255, 0.08));
+        color: #bfe2ff;
+      }
+
+      .small {
+        color: var(--text-dim);
+        font-size: 11px;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+      }
+
+      .title {
+        margin-top: 5px;
+        font-size: 22px;
+        font-weight: 700;
+      }
+
+      .desc {
+        margin-top: 4px;
+        color: var(--text-soft);
+        font-size: 13px;
+        line-height: 1.6;
+      }
+
+      .status {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 12px;
+        border-radius: 999px;
+        border: 1px solid rgba(52, 211, 153, 0.2);
+        background: rgba(52, 211, 153, 0.08);
+        color: #9ff0cf;
+        font-size: 12px;
+        white-space: nowrap;
+      }
+
+      .status::before {
+        content: "";
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--green);
+        box-shadow: 0 0 0 5px rgba(52, 211, 153, 0.12);
+      }
+
+      .scene-tabs {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 10px;
+        margin-top: 16px;
+      }
+
+      .scene-tab {
+        padding: 12px 10px;
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(255, 255, 255, 0.025);
+        text-align: center;
+        color: #c7d0dd;
+        font-size: 13px;
+      }
+
+      .scene-tab.active {
+        border-color: rgba(59, 130, 246, 0.28);
+        background:
+          linear-gradient(180deg, rgba(59, 130, 246, 0.14), rgba(59, 130, 246, 0.05)),
+          rgba(255, 255, 255, 0.03);
+        color: #eaf5ff;
+        box-shadow: 0 16px 34px rgba(59, 130, 246, 0.12);
+      }
+
+      .composer {
+        margin-top: 16px;
+        padding: 18px;
+        border-radius: 24px;
+        border: 1px solid var(--line);
+        background: rgba(5, 8, 14, 0.76);
+      }
+
+      .context-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 12px;
+      }
+
+      .context-row span {
+        padding: 8px 10px;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(255, 255, 255, 0.03);
+        color: #bfcbdb;
+        font-size: 12px;
+      }
+
+      .feedback {
+        margin-top: 14px;
+        padding: 14px 16px;
+        border-radius: 18px;
+        border: 1px solid rgba(98, 176, 255, 0.14);
+        background:
+          linear-gradient(180deg, rgba(59, 130, 246, 0.1), rgba(59, 130, 246, 0.04)),
+          rgba(255, 255, 255, 0.02);
+        color: #dbe8f6;
+        font-size: 13px;
+        line-height: 1.8;
+      }
+
+      .editor-shell {
+        margin-top: 14px;
+        padding: 14px;
+        border-radius: 18px;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        background: rgba(4, 8, 13, 0.88);
+      }
+
+      .editor-label {
+        color: var(--text-dim);
+        font-size: 11px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+      }
+
+      .editor {
+        margin-top: 10px;
+        color: #eff3f8;
+        font-size: 14px;
+        line-height: 1.8;
+      }
+
+      .suggestions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-top: 12px;
+      }
+
+      .suggestions span {
+        padding: 8px 10px;
+        border-radius: 999px;
+        border: 1px solid rgba(98, 176, 255, 0.16);
+        background: rgba(59, 130, 246, 0.08);
+        color: #b8dcff;
+        font-size: 12px;
+      }
+
+      .process {
+        margin-top: 16px;
+        padding: 14px 16px;
+        border-radius: 20px;
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.025);
+      }
+
+      .process-list {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+        margin-top: 12px;
+      }
+
+      .process-item {
+        position: relative;
+        padding: 12px 12px 12px 42px;
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        background: rgba(255, 255, 255, 0.025);
+      }
+
+      .process-item::before {
+        content: "";
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        width: 20px;
+        height: 20px;
+        margin-top: -10px;
+        border-radius: 50%;
+        background: linear-gradient(180deg, #fb923c, #f97316);
+        box-shadow: 0 8px 18px rgba(249, 115, 22, 0.16);
+      }
+
+      .process-item.active {
+        border-color: rgba(249, 115, 22, 0.22);
+        background:
+          linear-gradient(180deg, rgba(249, 115, 22, 0.12), rgba(249, 115, 22, 0.04)),
+          rgba(255, 255, 255, 0.02);
+      }
+
+      .process-title {
+        font-size: 13px;
+        font-weight: 600;
+        line-height: 1.5;
+      }
+
+      .process-state {
+        margin-top: 6px;
+        color: var(--text-dim);
+        font-size: 10px;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+      }
+
+      .button-row {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 14px;
+      }
+
+      .button {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 13px 18px;
+        border-radius: 999px;
+        border: 1px solid rgba(249, 115, 22, 0.26);
+        background: linear-gradient(135deg, #fb923c, #f97316);
+        color: #fff;
+        font-size: 14px;
+        font-weight: 700;
+        box-shadow: 0 16px 34px rgba(249, 115, 22, 0.24);
+      }
+
+      .right-head {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 18px;
+        align-items: center;
+      }
+
+      .actions {
+        display: flex;
+        gap: 8px;
+      }
+
+      .actions span {
+        padding: 10px 12px;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(255, 255, 255, 0.03);
+        color: #d7deea;
+        font-size: 12px;
+      }
+
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+        margin-top: 16px;
+      }
+
+      .stat {
+        padding: 14px 16px;
+        border-radius: 18px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(255, 255, 255, 0.03);
+      }
+
+      .stat .k {
+        color: var(--text-dim);
+        font-size: 10px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+      }
+
+      .stat .v {
+        margin-top: 8px;
+        font-size: 24px;
+        font-weight: 700;
+      }
+
+      .stage {
+        position: relative;
+        margin-top: 14px;
+        height: 560px;
+        padding: 22px;
+        overflow: hidden;
+        border-radius: 26px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background:
+          radial-gradient(circle at 48% 10%, rgba(59, 130, 246, 0.16), transparent 20%),
+          linear-gradient(180deg, rgba(7, 11, 17, 0.94), rgba(5, 8, 13, 0.9));
+      }
+
+      .stage::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+          linear-gradient(rgba(98, 176, 255, 0.04) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(98, 176, 255, 0.04) 1px, transparent 1px);
+        background-size: 34px 34px;
+        mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.84), rgba(0, 0, 0, 0.34));
+      }
+
+      .stage-top {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .stage-chip {
+        padding: 10px 12px;
+        border-radius: 999px;
+        border: 1px solid rgba(98, 176, 255, 0.18);
+        background: rgba(59, 130, 246, 0.08);
+        color: #b8dcff;
+        font-size: 12px;
+      }
+
+      .stage-note {
+        margin-top: 10px;
+        color: #dce6f4;
+        font-size: 14px;
+      }
+
+      .tree {
+        position: relative;
+        z-index: 1;
+        margin-top: 26px;
+        height: 430px;
+      }
+
+      .node {
+        position: absolute;
+        width: 240px;
+        padding: 16px 16px 14px;
+        border-radius: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(10, 15, 22, 0.82);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+      }
+
+      .node::before {
+        content: "";
+        position: absolute;
+        left: 16px;
+        top: 18px;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+      }
+
+      .node.sequence {
+        border-color: rgba(249, 115, 22, 0.24);
+        background: linear-gradient(180deg, rgba(249, 115, 22, 0.14), rgba(249, 115, 22, 0.05));
+      }
+
+      .node.sequence::before {
+        background: var(--amber);
+        box-shadow: 0 0 0 8px rgba(249, 115, 22, 0.12);
+      }
+
+      .node.selector {
+        border-color: rgba(167, 139, 250, 0.22);
+        background: linear-gradient(180deg, rgba(167, 139, 250, 0.14), rgba(167, 139, 250, 0.05));
+      }
+
+      .node.selector::before {
+        background: var(--violet);
+        box-shadow: 0 0 0 8px rgba(167, 139, 250, 0.12);
+      }
+
+      .node.condition {
+        border-color: rgba(52, 211, 153, 0.22);
+        background: linear-gradient(180deg, rgba(52, 211, 153, 0.14), rgba(52, 211, 153, 0.05));
+      }
+
+      .node.condition::before {
+        background: var(--green);
+        box-shadow: 0 0 0 8px rgba(52, 211, 153, 0.12);
+      }
+
+      .node.action {
+        border-color: rgba(96, 165, 250, 0.22);
+        background: linear-gradient(180deg, rgba(96, 165, 250, 0.14), rgba(96, 165, 250, 0.05));
+      }
+
+      .node.action::before {
+        background: #60a5fa;
+        box-shadow: 0 0 0 8px rgba(96, 165, 250, 0.12);
+      }
+
+      .node.active {
+        box-shadow:
+          0 22px 44px rgba(59, 130, 246, 0.16),
+          inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        transform: translateY(-3px);
+      }
+
+      .node-type {
+        margin-left: 22px;
+        color: var(--text-dim);
+        font-size: 10px;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+      }
+
+      .node-title {
+        margin: 9px 0 0 22px;
+        font-size: 17px;
+        font-weight: 700;
+      }
+
+      .node-desc {
+        margin: 8px 0 0 22px;
+        color: #d5dfec;
+        font-size: 12px;
+        line-height: 1.65;
+      }
+
+      .node-foot {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin: 12px 0 0 22px;
+      }
+
+      .node-status {
+        padding: 7px 9px;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(255, 255, 255, 0.04);
+        font-size: 10px;
+        color: #eef3f8;
+        text-transform: uppercase;
+      }
+
+      .node-fold {
+        color: #9cd8ff;
+        font-size: 11px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      }
+
+      .root { top: 0; left: 320px; }
+      .branch-a { top: 140px; left: 50px; }
+      .branch-b { top: 140px; left: 320px; }
+      .branch-c { top: 140px; right: 48px; }
+      .leaf-a { top: 300px; left: 190px; }
+      .leaf-b { top: 300px; left: 470px; }
+
+      .line {
+        position: absolute;
+        border-color: rgba(98, 176, 255, 0.28);
+        border-style: solid;
+        box-shadow: 0 0 16px rgba(98, 176, 255, 0.08);
+      }
+
+      .line.v-main {
+        left: 440px;
+        top: 108px;
+        width: 1px;
+        height: 46px;
+        border-left-width: 1px;
+      }
+
+      .line.h-top {
+        left: 170px;
+        top: 154px;
+        width: 540px;
+        height: 1px;
+        border-top-width: 1px;
+      }
+
+      .line.v-a,
+      .line.v-b,
+      .line.v-c {
+        top: 154px;
+        width: 1px;
+        height: 34px;
+        border-left-width: 1px;
+      }
+
+      .line.v-a { left: 170px; }
+      .line.v-b { left: 440px; }
+      .line.v-c { left: 710px; }
+
+      .line.v-down {
+        left: 440px;
+        top: 280px;
+        width: 1px;
+        height: 40px;
+        border-left-width: 1px;
+      }
+
+      .line.h-bottom {
+        left: 310px;
+        top: 320px;
+        width: 270px;
+        height: 1px;
+        border-top-width: 1px;
+      }
+
+      .line.v-leaf-a,
+      .line.v-leaf-b {
+        top: 320px;
+        width: 1px;
+        height: 28px;
+        border-left-width: 1px;
+      }
+
+      .line.v-leaf-a { left: 310px; }
+      .line.v-leaf-b { left: 580px; }
+
+      .overlay {
+        position: absolute;
+        right: 16px;
+        bottom: 16px;
+        width: 280px;
+        z-index: 2;
+        padding: 16px;
+        border-radius: 22px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background:
+          linear-gradient(180deg, rgba(11, 16, 25, 0.92), rgba(7, 11, 18, 0.88));
+        box-shadow: 0 18px 38px rgba(2, 6, 23, 0.3);
+      }
+
+      .overlay-title {
+        margin-top: 6px;
+        font-size: 18px;
+        font-weight: 700;
+      }
+
+      .overlay-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 12px;
+      }
+
+      .overlay-meta span {
+        padding: 7px 9px;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(255, 255, 255, 0.04);
+        color: #d9e3f2;
+        font-size: 10px;
+      }
+
+      .overlay p {
+        margin: 12px 0 0;
+        color: var(--text-soft);
+        font-size: 12px;
+        line-height: 1.7;
+      }
+
+      .overlay-note {
+        margin-top: 12px;
+        padding: 10px 12px;
+        border-radius: 16px;
+        border: 1px solid rgba(98, 176, 255, 0.12);
+        background: rgba(59, 130, 246, 0.08);
+        color: #cce8ff;
+        font-size: 11px;
+        line-height: 1.7;
+      }
+
+      .footer-note {
+        position: absolute;
+        right: 92px;
+        bottom: 18px;
+        color: rgba(150, 161, 181, 0.72);
+        font-size: 11px;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="frame">
+      <div class="grid"></div>
+      <div class="glow"></div>
+
+      <section class="section">
+        <div class="eyebrow">Compact Mockup Preview</div>
+
+        <div class="hero">
+          <div>
+            <h1>一句话生成行为树<span>压缩成更短的首页控制台模块</span></h1>
+            <div class="sub">
+              目标不是继续加内容，而是把输入、生成反馈、流程和行为树收束进一个更低、更紧凑的模块里，让这块在首页里更像“一个完整功能”，而不是一整段长篇展示区。
+            </div>
+          </div>
+
+          <div class="meta">
+            <span>Height Target: 780-900px</span>
+            <span>Layout: Compact Console</span>
+            <span>Tree Mode: Folded</span>
+          </div>
+        </div>
+
+        <div class="shell">
+          <div class="panel left">
+            <div class="title-row">
+              <div class="lead">
+                <div class="icon">T</div>
+                <div>
+                  <div class="small">Task Composer</div>
+                  <div class="title">输入、反馈、流程合并</div>
+                  <div class="desc">左侧不再纵向堆 4 块卡片，而是压成一个输入控制台。</div>
+                </div>
+              </div>
+              <div class="status">Compact Mode</div>
+            </div>
+
+            <div class="scene-tabs">
+              <div class="scene-tab">仓储巡检</div>
+              <div class="scene-tab">接待引导</div>
+              <div class="scene-tab active">安防夜巡</div>
+              <div class="scene-tab">工业装配</div>
+            </div>
+
+            <div class="composer">
+              <div class="small">Current Context</div>
+              <div class="context-row">
+                <span>Scenario: 安防夜巡</span>
+                <span>Status: 生成主链路</span>
+                <span>Output: Behavior Tree</span>
+              </div>
+
+              <div class="feedback">
+                已解析任务目标、巡查区域、异常处理分支与返航条件，当前只突出展示主链路和关键异常分支，减少默认展开内容。
+              </div>
+
+              <div class="editor-shell">
+                <div class="editor-label">Task Prompt</div>
+                <div class="editor">
+                  帮我给安防巡逻机器人生成夜间巡检策略，重点巡查 3 号仓与西侧通道；发现异常先拍照，再通知值班室。
+                </div>
+                <div class="suggestions">
+                  <span>先录像再告警</span>
+                  <span>限制进入禁区</span>
+                  <span>异常后返航待命</span>
+                </div>
+              </div>
+
+              <div class="process">
+                <div class="small">Generation Flow</div>
+                <div class="process-list">
+                  <div class="process-item">
+                    <div class="process-title">解析任务目标</div>
+                    <div class="process-state">Done</div>
+                  </div>
+                  <div class="process-item">
+                    <div class="process-title">绑定感知与巡逻技能</div>
+                    <div class="process-state">Done</div>
+                  </div>
+                  <div class="process-item active">
+                    <div class="process-title">生成主链路与异常分支</div>
+                    <div class="process-state">Live</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="button-row">
+                <div class="button">Generate Behavior Tree</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel right">
+            <div class="right-head">
+              <div class="lead">
+                <div class="icon blue">B</div>
+                <div>
+                  <div class="small">Behavior Tree Stage</div>
+                  <div class="title">树图是主角，详情改成浮层</div>
+                  <div class="desc">去掉独立右侧详情栏，默认只展示主链路和关键分支，节点细节用浮层承载。</div>
+                </div>
+              </div>
+              <div class="actions">
+                <span>缩小</span>
+                <span>放大</span>
+                <span>导出</span>
+              </div>
+            </div>
+
+            <div class="stats">
+              <div class="stat">
+                <div class="k">节点总数</div>
+                <div class="v">14</div>
+              </div>
+              <div class="stat">
+                <div class="k">默认展开</div>
+                <div class="v">6</div>
+              </div>
+              <div class="stat">
+                <div class="k">推理耗时</div>
+                <div class="v">0.64s</div>
+              </div>
+            </div>
+
+            <div class="stage">
+              <div class="stage-top">
+                <div>
+                  <div class="small">Focused View</div>
+                  <div class="stage-note">当前高亮：安防夜巡主链路 + 异常处理关键分支</div>
+                </div>
+                <div class="stage-chip">Folded Secondary Branches</div>
+              </div>
+
+              <div class="tree">
+                <div class="line v-main"></div>
+                <div class="line h-top"></div>
+                <div class="line v-a"></div>
+                <div class="line v-b"></div>
+                <div class="line v-c"></div>
+                <div class="line v-down"></div>
+                <div class="line h-bottom"></div>
+                <div class="line v-leaf-a"></div>
+                <div class="line v-leaf-b"></div>
+
+                <div class="node sequence root active">
+                  <div class="node-type">Sequence Root</div>
+                  <div class="node-title">安防夜巡</div>
+                  <div class="node-desc">统筹巡逻主链路，连接感知、巡检与异常处理。</div>
+                  <div class="node-foot">
+                    <div class="node-status">running</div>
+                    <div class="node-fold">root</div>
+                  </div>
+                </div>
+
+                <div class="node selector branch-a">
+                  <div class="node-type">Selector</div>
+                  <div class="node-title">环境感知</div>
+                  <div class="node-desc">融合视觉与热成像结果，判断是否触发告警支路。</div>
+                  <div class="node-foot">
+                    <div class="node-status">success</div>
+                    <div class="node-fold">+2 folded</div>
+                  </div>
+                </div>
+
+                <div class="node sequence branch-b">
+                  <div class="node-type">Sequence</div>
+                  <div class="node-title">路径巡检</div>
+                  <div class="node-desc">按航点执行夜巡，持续监测通行状态和动态障碍。</div>
+                  <div class="node-foot">
+                    <div class="node-status">running</div>
+                    <div class="node-fold">+1 folded</div>
+                  </div>
+                </div>
+
+                <div class="node selector branch-c">
+                  <div class="node-type">Selector</div>
+                  <div class="node-title">异常处理</div>
+                  <div class="node-desc">切换到取证、告警和返航待命分支。</div>
+                  <div class="node-foot">
+                    <div class="node-status">ready</div>
+                    <div class="node-fold">focus</div>
+                  </div>
+                </div>
+
+                <div class="node condition leaf-a">
+                  <div class="node-type">Condition</div>
+                  <div class="node-title">异常目标识别</div>
+                  <div class="node-desc">识别可疑人员、越界和环境遮挡。</div>
+                  <div class="node-foot">
+                    <div class="node-status">success</div>
+                    <div class="node-fold">vision</div>
+                  </div>
+                </div>
+
+                <div class="node action leaf-b active">
+                  <div class="node-type">Action</div>
+                  <div class="node-title">拍照并通知值班室</div>
+                  <div class="node-desc">将抓拍结果与位置信息同步到值班控制台。</div>
+                  <div class="node-foot">
+                    <div class="node-status">ready</div>
+                    <div class="node-fold">alert</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="overlay">
+                <div class="small">Node Inspector</div>
+                <div class="overlay-title">拍照并通知值班室</div>
+                <div class="overlay-meta">
+                  <span>Action</span>
+                  <span>ready</span>
+                  <span>异常取证链路</span>
+                </div>
+                <p>详情不再占据固定侧栏，而是收缩成舞台内浮层。这样同样能讲清楚节点内容，但整体高度会明显下降。</p>
+                <div class="overlay-note">压缩策略：场景模板横向化、流程横向化、详情浮层化、树节点默认折叠。</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div class="footer-note">Zhiji Demo · Text2BT Compact Visual Direction Mockup V1</div>
+    </div>
+  </body>
+</html>
